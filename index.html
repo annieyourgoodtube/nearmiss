@@ -1,0 +1,2299 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>台中慈濟醫院 - 調劑疏失分析</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Microsoft JhengHei', sans-serif; 
+            background: #f5f7fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 側邊欄 */
+        .sidebar {
+            width: 240px;
+            background: linear-gradient(180deg, #1e3a5f 0%, #0d1b2a 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 4px 0 12px rgba(0,0,0,0.15);
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-header h2 {
+            color: white;
+            font-size: 20px;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .sidebar-header .subtitle {
+            color: #a8c5e2;
+            font-size: 15px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .sidebar-header .author {
+            color: #6b9bc7;
+            font-size: 13px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .nav-section {
+            padding: 20px 0;
+        }
+        
+        .nav-section-title {
+            color: #6b9bc7;
+            font-size: 13px;
+            padding: 0 20px 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            color: #b8d4ea;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+            font-weight: 500;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255,255,255,0.08);
+            color: white;
+            border-left-color: #4a90e2;
+        }
+        
+        .nav-item.active {
+            background: rgba(74, 144, 226, 0.15);
+            color: white;
+            border-left-color: #4a90e2;
+        }
+        
+        .nav-icon {
+            margin-right: 12px;
+            font-size: 22px;
+            width: 28px;
+            text-align: center;
+        }
+        
+        /* 主內容區 */
+        .main-content {
+            margin-left: 240px;
+            flex: 1;
+            padding: 40px 50px;
+            position: relative;
+        }
+        
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto;
+        }
+        h1 { 
+            color: #1e3a5f; 
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle { 
+            color: #666; 
+            margin-bottom: 30px; 
+        }
+        .upload-area { 
+            border: 3px dashed #4a90e2; 
+            padding: 80px 40px; 
+            text-align: center; 
+            cursor: pointer; 
+            background: #f8fbff;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        .upload-area:hover { 
+            background: #e8f3ff; 
+            transform: translateY(-2px);
+        }
+        .upload-icon { 
+            font-size: 64px; 
+            margin-bottom: 20px; 
+        }
+        .upload-title { 
+            font-size: 20px; 
+            color: #1e3a5f; 
+            margin-bottom: 10px; 
+            font-weight: 600;
+        }
+        .upload-hint { 
+            color: #666; 
+            font-size: 14px; 
+        }
+        #results { 
+            display: none; 
+            margin-top: 30px; 
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4a90e2;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1e3a5f;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #4a90e2;
+            color: white;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+        .btn {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background: #357abd;
+        }
+        #loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4a90e2;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 側邊欄 -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2 style="font-size: 22px; font-weight: bold; line-height: 1.4;">
+                台中慈濟醫院<br>
+                藥學部
+            </h2>
+            <div class="subtitle" style="font-size: 16px; margin-bottom: 8px;">HIS5 × Near miss</div>
+            <div class="author" style="font-size: 18px; color: #ffffff; font-weight: bold; margin-top: 15px; padding-top: 15px; border-top: 2px solid rgba(255,255,255,0.2);">
+                許文馨 製作
+            </div>
+            <div class="author" style="display: flex; align-items: center; gap: 10px; padding-top: 12px; margin-top: 10px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="#00B900" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                    <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+                </svg>
+                <span style="font-size: 18px; color: #ffffff; font-weight: bold; letter-spacing: 0.5px;">kaoruhsu23</span>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">主要功能</div>
+            <div class="nav-item active" onclick="showPage('upload')">
+                <span class="nav-icon">📤</span>
+                <span>上傳疏失資料</span>
+            </div>
+            <div class="nav-item" onclick="showPage('pharmacy')">
+                <span class="nav-icon">🏥</span>
+                <span>調劑藥局</span>
+            </div>
+            <div class="nav-item" onclick="showPage('source')">
+                <span class="nav-icon">📋</span>
+                <span>處方來源</span>
+            </div>
+            <div class="nav-item" onclick="showPage('pharmacist')">
+                <span class="nav-icon">👥</span>
+                <span>藥師分析</span>
+            </div>
+            <div class="nav-item" onclick="showPage('seniority-analysis')">
+                <span class="nav-icon">📊</span>
+                <span>年資分布分析</span>
+            </div>
+            <div class="nav-item" onclick="showPage('location')">
+                <span class="nav-icon">📍</span>
+                <span>儲位分析</span>
+            </div>
+            <div class="nav-item" onclick="showPage('error')">
+                <span class="nav-icon">⚠️</span>
+                <span>疏失原因</span>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">視覺化分析</div>
+            <div class="nav-item" onclick="showPage('sankey')">
+                <span class="nav-icon">📊</span>
+                <span>桑基圖分析</span>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">系統管理</div>
+            <div class="nav-item" onclick="showPage('location-config')">
+                <span class="nav-icon">🔧</span>
+                <span>儲位維護</span>
+            </div>
+            <div class="nav-item" onclick="showPage('seniority-config')">
+                <span class="nav-icon">📅</span>
+                <span>藥師年資管理</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主內容區 -->
+    <div class="main-content">
+    <div class="container">
+        <h1>台中慈濟醫院 - 調劑疏失分析系統</h1>
+        <p class="subtitle" style="color: #666; margin: 10px 0;">精進之道，不在於登峰造極，而在於享受過程</p>
+        <p class="subtitle" style="margin-top: 15px;">許文馨</p>
+
+        <div id="uploadSection">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📊</div>
+                <div class="upload-title">點擊此處上傳 Excel 檔案</div>
+                <div class="upload-hint">支援 .xlsx 和 .xls 格式</div>
+                <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
+            </div>
+        </div>
+
+        <div id="loading">
+            <div class="spinner"></div>
+            <div style="color: #1e3a5f; font-size: 18px;">正在分析資料...</div>
+        </div>
+
+        <div id="results">
+            <h2 style="color: #1e3a5f; margin: 30px 0 20px 0;">📊 分析結果</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;">
+                <div class="stat-card">
+                    <div class="stat-label">總疏失數</div>
+                    <div class="stat-value" id="totalCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">專用台疏失</div>
+                    <div class="stat-value" id="specialCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">一般台疏失</div>
+                    <div class="stat-value" id="generalCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">審核藥師發現</div>
+                    <div class="stat-value" id="reviewerCount">0</div>
+                </div>
+            </div>
+
+            <h3 style="color: #1e3a5f; margin: 20px 0 10px 0;">👥 疏失藥師排行 TOP 10</h3>
+            <table id="pharmacistTable">
+                <thead>
+                    <tr><th>排名</th><th>藥師</th><th>疏失次數</th></tr>
+                </thead>
+                <tbody id="pharmacistBody"></tbody>
+            </table>
+
+            <h3 style="color: #1e3a5f; margin: 20px 0 10px 0;">🔍 發現藥師排行 TOP 10</h3>
+            <table id="discovererTable">
+                <thead>
+                    <tr><th>排名</th><th>建構者（發現藥師）</th><th>發現次數</th></tr>
+                </thead>
+                <tbody id="discovererBody"></tbody>
+            </table>
+
+            <h3 style="color: #1e3a5f; margin: 20px 0 10px 0;">📊 發現類型明細</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div class="stat-card">
+                    <div class="stat-label">審核藥師發現</div>
+                    <div class="stat-value" id="reviewDiscoveryCount">0</div>
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;" id="reviewDiscoveryPercent">0%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">發藥藥師發現</div>
+                    <div class="stat-value" id="dispenserDiscoveryCount">0</div>
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;" id="dispenserDiscoveryPercent">0%</div>
+                </div>
+            </div>
+
+            <h3 style="color: #1e3a5f; margin: 20px 0 10px 0;">📋 審核藥師發現明細（建構者=審核藥師）</h3>
+            <table id="reviewDiscoveryTable">
+                <thead>
+                    <tr><th>排名</th><th>審核藥師</th><th>發現次數</th></tr>
+                </thead>
+                <tbody id="reviewDiscoveryBody"></tbody>
+            </table>
+
+            <h3 style="color: #1e3a5f; margin: 20px 0 10px 0;">📦 發藥藥師發現明細（建構者=發藥藥師）</h3>
+            <table id="dispenserDiscoveryTable">
+                <thead>
+                    <tr><th>排名</th><th>發藥藥師</th><th>發現次數</th></tr>
+                </thead>
+                <tbody id="dispenserDiscoveryBody"></tbody>
+            </table>
+
+            <h3 style="color: #1e3a5f; margin: 20px 0 10px 0;">⚠️ 疏失類型統計</h3>
+            <table id="errorTypeTable">
+                <thead>
+                    <tr><th>疏失類型</th><th>次數</th><th>百分比</th></tr>
+                </thead>
+                <tbody id="errorTypeBody"></tbody>
+            </table>
+
+            <div style="margin-top: 30px;">
+                <button class="btn" onclick="location.reload()">🔄 重新上傳</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        let analysisData = null;
+        const locationConfig = {
+            "專用台": ["A9", "AD", "ADC", "E8", "E9", "G1", "G2", "G3", "G4", "H1", "H2", "H3", "H4", "I1", "I2", "I3", "I4", "I5", "I6", "I7", "I8", "I9", "J1", "J2", "J3", "J4", "K1", "K2", "K3", "K4", "K5", "K7", "K8", "K9", "L0", "L6", "L8", "L9", "M1", "M2", "M3", "M4", "P1", "P2", "P4", "RE", "S4", "TB", "V0", "V0+", "W6", "W7", "W8", "W9", "Z9", "丸0", "自0", "臨0", "臨1", "臨2", "臨3", "臨4", "臨5", "臨6", "臨7", "臨8", "臨9", "藥庫"],
+            "一般台": ["0", "00", "001", "002", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012", "013", "014", "015", "016", "017", "018", "019", "020", "021", "022", "023", "024", "025", "026", "027", "028", "029", "030", "031", "032", "033", "034", "035", "036", "037", "038", "039", "040", "041", "042", "043", "044", "045", "046", "047", "048", "049", "050", "051", "052", "053", "054", "055", "056", "057", "058", "059", "060", "061", "062", "063", "064", "065", "066", "067", "068", "069", "070", "071", "072", "073", "074", "075", "076", "077", "078", "079", "080", "081", "082", "083", "084", "085", "086", "087", "088", "089", "090", "091", "092", "093", "094", "095", "096", "097", "098", "099", "02", "04", "06", "08", "09", "10", "100", "101", "102", "103", "104", "105", "106", "107", "108", "109", "110", "111", "112", "113", "114", "115", "116", "117", "118", "119", "120", "121", "122", "123", "124", "125", "126", "127", "128", "129", "130", "131", "132", "133", "134", "135", "136", "137", "138", "139", "14", "140", "141", "142", "143", "144", "145", "146", "147", "148", "149", "150", "151", "152", "153", "154", "155", "156", "157", "158", "159", "160", "161", "162", "163", "164", "165", "166", "167", "168", "169", "17", "170", "171", "172", "173", "174", "175", "176", "177", "178", "179", "18", "180", "181", "182", "183", "184", "185", "186", "187", "188", "189", "190", "191", "192", "193", "194", "195", "196", "197", "198", "199", "2", "200", "201", "202", "203", "204", "205", "206", "207", "208", "209", "210", "211", "212", "213", "214", "215", "216", "217", "218", "219", "220", "221", "222", "223", "224", "225", "226", "227", "228", "229", "230", "231", "232", "233", "234", "235", "236", "237", "238", "239", "24", "240", "241", "242", "243", "244", "245", "246", "247", "248", "249", "250", "251", "252", "253", "254", "255", "256", "257", "258", "259", "260", "261", "262", "263", "264", "265", "266", "267", "268", "269", "270", "271", "272", "273", "274", "275", "276", "277", "278", "279", "280", "281", "282", "283", "284", "285", "286", "287", "288", "289", "29", "290", "291", "292", "293", "294", "295", "296", "297", "298", "299", "300", "4", "6", "8", "9", "A0", "A1", "A2", "A3", "A4", "A5", "B1", "B2", "B3", "B4", "B5", "C1", "C2", "C3", "C4", "C5", "D1", "D2", "D3", "D4", "D5", "E1", "E2", "E3", "E4", "E5", "F1", "F2", "F3", "F4", "F5", "L5", "W0", "W1", "W2", "W3", "W4", "Z1", "Z2", "Z3", "Z4", "Z5"]
+        };
+        let seniorityData = {
+            "王子宸": "2017-05-02", "陳玫舒": "2016-06-01", "張雅媛": "2020-04-06", "陳瑩諭": "2011-08-16",
+            "張靜怡": "2006-08-01", "朱弈緬": "2020-02-03", "陳建全": "2006-12-18", "朱怡蓁": "2018-11-19",
+            "李雅蓁": "2008-01-17", "謝蕙霞": "2012-12-17", "劉怡青": "2005-08-08", "胡仁珍": "2017-10-16",
+            "陳辰芳": "2019-03-04", "羅如海": "2023-10-02", "黃筱婷": "2024-09-09", "洪志豪": "2012-08-13",
+            "沈逸婷": "2016-10-11", "洪培原": "2017-08-21", "李宛怡": "2017-09-11", "蘇民傑": "2019-04-16",
+            "陳詩韻": "2020-05-18", "吳展榕": "2024-09-09", "王雅萍": "2010-03-15", "張紀卿": "2007-01-14",
+            "胡家瑜": "2013-08-19", "廖暄旻": "2022-09-05", "許文馨": "2015-05-18", "李家豪": "2016-09-19",
+            "張雅婷": "2023-03-13", "李紀賢": "2023-08-28", "施瑢家": "2023-09-18", "莊清祥": "2006-08-01",
+            "賴欣君": "2013-02-18", "林心瑜": "2016-08-01", "何曉嫻": "2017-03-01", "趙崇勝": "2017-04-05",
+            "楊家榮": "2017-06-05", "徐千惠": "2018-08-13", "林順治": "2019-01-16", "黃湘容": "2019-05-06",
+            "李孟謙": "2019-10-16", "鄭群譯": "2019-11-04", "李庭逸": "2020-02-10", "邱柔雯": "2020-05-11",
+            "王芷翎": "2020-08-31", "沈凡意": "2021-09-01", "陳佩姍": "2021-09-01", "郭芳瑜": "2021-11-08",
+            "李芝綺": "2022-05-16", "余積修": "2023-02-01", "李宥榛": "2023-04-03", "張鑑宏": "2023-04-24",
+            "陳盈蓁": "2023-06-05", "林倍如": "2023-07-10", "王皓儀": "2023-09-04", "張耀文": "2023-10-17",
+            "林怡菁": "2023-12-04", "黃于軒": "2023-04-08", "蔡淨嚴": "2024-08-19", "李柏昕": "2024-08-19",
+            "湯霈馨": "2024-09-09", "林絮筠": "2024-09-16", "李翎菲": "2024-10-28", "林宗義": "2025-03-17",
+            "陳怡㚬": "2025-09-08", "吳咸蓉": "2025-09-27", "黃緯軒": "2025-10-01", "邱譯平": "2025-10-13",
+            "陳伃萱": "2025-10-13", "林芷安": "2025-10-27", "張文豪": "2026-02-02", "王皓平": "2026-03-16",
+            "林俞均": "2026-04-13", "劉崇瑜": "2026-04-13"
+        }; // 藥師年資資料（預設已載入 74 位藥師）
+
+        // 處理藥局名稱的統一函數
+        function getPharmacyName(row) {
+            const pharmacy = row['調劑藥局'];
+            const dispensingType = row['調劑種類'] ? String(row['調劑種類']).trim() : '';
+            
+            // 特殊邏輯：第一院區住院首日量藥局
+            if (pharmacy === '第一院區住院首日量藥局') {
+                if (dispensingType === 'UD過檔') {
+                    return '第一院區住院藥局';
+                } else if (dispensingType === '首日量' || dispensingType === 'PRN確認') {
+                    return '第一院區首日量藥局';
+                }
+            }
+            
+            return pharmacy || '未知';
+        }
+
+        document.getElementById('uploadArea').onclick = function() {
+            document.getElementById('fileInput').click();
+        };
+
+        document.getElementById('fileInput').onchange = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById('uploadSection').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                setTimeout(() => {
+                    try {
+                        const data = new Uint8Array(evt.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(sheet, { range: 1 });
+
+                        analyzeAndDisplay(jsonData);
+                        
+                        // 儲存過濾後的資料（排除測試用藥師）
+                        analysisData = jsonData.filter(row => {
+                            const oral = row['口調藥師'] ? String(row['口調藥師']) : '';
+                            const water = row['水雜藥師'] ? String(row['水雜藥師']) : '';
+                            const reviewer = row['審核藥師'] ? String(row['審核藥師']) : '';
+                            const dispenser = row['發藥藥師'] ? String(row['發藥藥師']) : '';
+                            return !oral.includes('測試') && 
+                                   !water.includes('測試') && 
+                                   !reviewer.includes('測試') && 
+                                   !dispenser.includes('測試');
+                        });
+
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('results').style.display = 'block';
+                    } catch (error) {
+                        alert('檔案解析失敗：' + error.message);
+                        location.reload();
+                    }
+                }, 1500);
+            };
+            reader.readAsArrayBuffer(file);
+        };
+
+        function analyzeAndDisplay(data) {
+            // 過濾掉測試資料
+            const filteredData = data.filter(row => {
+                const oral = row['口調藥師'] ? String(row['口調藥師']) : '';
+                const water = row['水雜藥師'] ? String(row['水雜藥師']) : '';
+                const reviewer = row['審核藥師'] ? String(row['審核藥師']) : '';
+                const dispenser = row['發藥藥師'] ? String(row['發藥藥師']) : '';
+                
+                // 如果任何一個藥師欄位包含「測試」，就過濾掉
+                return !oral.includes('測試') && 
+                       !water.includes('測試') && 
+                       !reviewer.includes('測試') && 
+                       !dispenser.includes('測試');
+            });
+            
+            let stats = {
+                total: filteredData.length,
+                special: 0,
+                general: 0,
+                reviewer: 0,
+                errorPharmacists: {},
+                errorTypes: {},
+                discoveryTypes: { '審核藥師發現': 0, '發藥藥師發現': 0 },
+                discoverers: {},
+                reviewDiscoverers: {},
+                dispenserDiscoverers: {}
+            };
+
+            filteredData.forEach(row => {
+                // 台別統計
+                if (row['儲位']) {
+                    const loc = String(row['儲位']).substring(0, 2).toUpperCase();
+                    if (locationConfig['專用台'].includes(loc)) stats.special++;
+                    else if (locationConfig['一般台'].includes(loc)) stats.general++;
+                }
+
+                // 發現類型判定
+                const builder = row['建構者'];
+                const reviewer = row['審核藥師'];
+                const dispenser = row['發藥藥師'];
+                const dispensingType = row['調劑種類'];
+                let discoveryType = '審核藥師發現'; // 預設為審核藥師發現
+                
+                // 診斷：前5筆顯示詳細資訊
+                const rowIndex = filteredData.indexOf(row);
+                if (rowIndex < 5) {
+                    console.log(`=== 資料第 ${rowIndex + 1} 筆 ===`);
+                    console.log('建構者:', builder, typeof builder);
+                    console.log('發藥藥師:', dispenser, typeof dispenser);
+                    console.log('審核藥師:', reviewer, typeof reviewer);
+                    console.log('調劑種類:', dispensingType);
+                    
+                    // 嘗試多種比較方式
+                    if (builder && dispenser) {
+                        const b = String(builder).trim();
+                        const d = String(dispenser).trim();
+                        console.log('Trim後建構者:', `"${b}"`);
+                        console.log('Trim後發藥藥師:', `"${d}"`);
+                        console.log('===比較:', b === d);
+                        console.log('字串長度:', `建構者${b.length}, 發藥${d.length}`);
+                    }
+                    console.log('---');
+                }
+
+                // 特殊調劑種類：首日量、UD過檔、PRN確認 → 建構者就是審核藥師
+                if (dispensingType && ['首日量', 'UD過檔', 'PRN確認'].includes(String(dispensingType).trim())) {
+                    discoveryType = '審核藥師發現';
+                    stats.reviewer++;
+                    // 審核藥師發現明細（使用建構者）
+                    if (builder) {
+                        stats.reviewDiscoverers[builder] = (stats.reviewDiscoverers[builder] || 0) + 1;
+                    }
+                } else if (builder && dispenser && 
+                          String(builder).trim() !== '' && 
+                          String(dispenser).trim() !== '' &&
+                          String(builder).trim() === String(dispenser).trim()) {
+                    // 發藥藥師發現
+                    discoveryType = '發藥藥師發現';
+                    // 發藥藥師發現明細（統計建構者）
+                    if (builder) {
+                        stats.dispenserDiscoverers[builder] = (stats.dispenserDiscoverers[builder] || 0) + 1;
+                    }
+                } else {
+                    // 其他情況都是審核藥師發現
+                    discoveryType = '審核藥師發現';
+                    stats.reviewer++;
+                    // 審核藥師發現明細
+                    if (builder) {
+                        stats.reviewDiscoverers[builder] = (stats.reviewDiscoverers[builder] || 0) + 1;
+                    }
+                }
+
+                stats.discoveryTypes[discoveryType]++;
+
+                // 建構者統計（發現藥師排行）- 排除建構者=發藥藥師的情況
+                // 建構者=發藥藥師時，不列入發現藥師排行，只統計審核疏失
+                if (builder && !(builder && dispenser && String(builder).trim() === String(dispenser).trim())) {
+                    stats.discoverers[builder] = (stats.discoverers[builder] || 0) + 1;
+                }
+
+                // 疏失藥師判定（加入完整的儲位過濾和發現者不列計邏輯）
+                const pharmacists = new Set();
+                
+                // 判斷正確儲位的台別
+                let correctLocationType = '未分類';
+                if (row['儲位']) {
+                    const loc = String(row['儲位']).substring(0, 2).toUpperCase();
+                    if (locationConfig['專用台'].includes(loc)) {
+                        correctLocationType = '專用台';
+                    } else if (locationConfig['一般台'].includes(loc)) {
+                        correctLocationType = '一般台';
+                    }
+                }
+                
+                // 取得各藥師名稱
+                const oralPharmacist = row['口調藥師'] ? String(row['口調藥師']).trim() : null;
+                const waterPharmacist = row['水雜藥師'] ? String(row['水雜藥師']).trim() : null;
+                const reviewerName = reviewer ? String(reviewer).trim() : null;
+                const dispenserName = dispenser ? String(dispenser).trim() : null;
+                
+                // 判斷口調和水雜是否為同一人
+                const isSamePerson = oralPharmacist && waterPharmacist && oralPharmacist === waterPharmacist;
+                
+                if (discoveryType === '審核藥師發現') {
+                    // 建構者 = 審核藥師：發藥藥師和審核藥師不列計，僅列口調和水雜
+                    
+                    if (isSamePerson) {
+                        // 口調 = 水雜（同一人）
+                        if (correctLocationType === '一般台') {
+                            // 正確儲位 = 一般台：水雜不列計，只列口調
+                            if (oralPharmacist) pharmacists.add(oralPharmacist);
+                        } else if (correctLocationType === '專用台') {
+                            // 正確儲位 = 專用台：口調不列計，只列水雜
+                            if (waterPharmacist) pharmacists.add(waterPharmacist);
+                        } else {
+                            // 未分類：都列計（但同一人只列一次）
+                            if (oralPharmacist) pharmacists.add(oralPharmacist);
+                        }
+                    } else {
+                        // 口調 ≠ 水雜（不同人）
+                        // 1. 當正確儲位 = 專用台屬性：該口調藥師不列計
+                        if (oralPharmacist && correctLocationType !== '專用台') {
+                            pharmacists.add(oralPharmacist);
+                        }
+                        // 2. 當正確儲位 = 一般台屬性：該水雜藥師不列計
+                        if (waterPharmacist && correctLocationType !== '一般台') {
+                            pharmacists.add(waterPharmacist);
+                        }
+                    }
+                    // 審核藥師不列計（因為是發現者）
+                    // 發藥藥師不列計（因為是發現者）
+                    
+                } else if (discoveryType === '發藥藥師發現') {
+                    // 建構者 = 發藥藥師：發藥藥師不列計，僅列口調、水雜、審核藥師
+                    
+                    if (isSamePerson) {
+                        // 口調 = 水雜（同一人）
+                        if (correctLocationType === '一般台') {
+                            // 正確儲位 = 一般台：水雜不列計，只列口調
+                            if (oralPharmacist) pharmacists.add(oralPharmacist);
+                        } else if (correctLocationType === '專用台') {
+                            // 正確儲位 = 專用台：口調不列計，只列水雜
+                            if (waterPharmacist) pharmacists.add(waterPharmacist);
+                        } else {
+                            // 未分類：都列計（但同一人只列一次）
+                            if (oralPharmacist) pharmacists.add(oralPharmacist);
+                        }
+                    } else {
+                        // 口調 ≠ 水雜（不同人）
+                        if (oralPharmacist && correctLocationType !== '專用台') {
+                            pharmacists.add(oralPharmacist);
+                        }
+                        if (waterPharmacist && correctLocationType !== '一般台') {
+                            pharmacists.add(waterPharmacist);
+                        }
+                    }
+                    // 審核藥師列計
+                    if (reviewerName) pharmacists.add(reviewerName);
+                    // 發藥藥師不列計（因為是發現者）
+                    
+                } else {
+                    // 其他發現：列入所有藥師（除了發現者本身）
+                    
+                    if (isSamePerson) {
+                        // 口調 = 水雜（同一人）
+                        if (correctLocationType === '一般台') {
+                            if (oralPharmacist) pharmacists.add(oralPharmacist);
+                        } else if (correctLocationType === '專用台') {
+                            if (waterPharmacist) pharmacists.add(waterPharmacist);
+                        } else {
+                            if (oralPharmacist) pharmacists.add(oralPharmacist);
+                        }
+                    } else {
+                        // 口調 ≠ 水雜（不同人）
+                        if (oralPharmacist && correctLocationType !== '專用台') {
+                            pharmacists.add(oralPharmacist);
+                        }
+                        if (waterPharmacist && correctLocationType !== '一般台') {
+                            pharmacists.add(waterPharmacist);
+                        }
+                    }
+                    
+                    // 審核藥師列計
+                    if (reviewerName) pharmacists.add(reviewerName);
+                    // 發藥藥師列計
+                    if (dispenserName) pharmacists.add(dispenserName);
+                }
+
+                pharmacists.forEach(p => {
+                    stats.errorPharmacists[p] = (stats.errorPharmacists[p] || 0) + 1;
+                });
+
+                // 疏失類型
+                if (row['調劑疏失類型']) {
+                    const type = row['調劑疏失類型'];
+                    stats.errorTypes[type] = (stats.errorTypes[type] || 0) + 1;
+                }
+            });
+
+            // 顯示統計
+            document.getElementById('totalCount').textContent = stats.total;
+            document.getElementById('specialCount').textContent = stats.special;
+            document.getElementById('generalCount').textContent = stats.general;
+            document.getElementById('reviewerCount').textContent = stats.reviewer;
+
+            // 發現類型統計
+            document.getElementById('reviewDiscoveryCount').textContent = stats.discoveryTypes['審核藥師發現'];
+            document.getElementById('reviewDiscoveryPercent').textContent = 
+                ((stats.discoveryTypes['審核藥師發現'] / stats.total) * 100).toFixed(1) + '%';
+            
+            document.getElementById('dispenserDiscoveryCount').textContent = stats.discoveryTypes['發藥藥師發現'];
+            document.getElementById('dispenserDiscoveryPercent').textContent = 
+                ((stats.discoveryTypes['發藥藥師發現'] / stats.total) * 100).toFixed(1) + '%';
+
+            // 疏失藥師排行
+            const pharmacistList = Object.entries(stats.errorPharmacists)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+            
+            let pharmacistHTML = '';
+            pharmacistList.forEach(([name, count], i) => {
+                pharmacistHTML += `<tr><td>${i + 1}</td><td>${name}</td><td><strong>${count}</strong></td></tr>`;
+            });
+            document.getElementById('pharmacistBody').innerHTML = pharmacistHTML;
+
+            // 發現藥師排行（建構者）
+            const discovererList = Object.entries(stats.discoverers)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+            
+            let discovererHTML = '';
+            discovererList.forEach(([name, count], i) => {
+                discovererHTML += `<tr><td>${i + 1}</td><td>${name}</td><td><strong>${count}</strong></td></tr>`;
+            });
+            document.getElementById('discovererBody').innerHTML = discovererHTML;
+
+            // 審核藥師發現明細
+            const reviewDiscovererList = Object.entries(stats.reviewDiscoverers)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+            
+            let reviewHTML = '';
+            reviewDiscovererList.forEach(([name, count], i) => {
+                reviewHTML += `<tr><td>${i + 1}</td><td>${name}</td><td><strong>${count}</strong></td></tr>`;
+            });
+            document.getElementById('reviewDiscoveryBody').innerHTML = reviewHTML || '<tr><td colspan="3" style="text-align:center; color: #999;">無資料</td></tr>';
+
+            // 發藥藥師發現明細
+            const dispenserDiscovererList = Object.entries(stats.dispenserDiscoverers)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+            
+            let dispenserHTML = '';
+            dispenserDiscovererList.forEach(([name, count], i) => {
+                dispenserHTML += `<tr><td>${i + 1}</td><td>${name}</td><td><strong>${count}</strong></td></tr>`;
+            });
+            document.getElementById('dispenserDiscoveryBody').innerHTML = dispenserHTML || '<tr><td colspan="3" style="text-align:center; color: #999;">無資料</td></tr>';
+
+            // 疏失類型統計
+            const errorTypeList = Object.entries(stats.errorTypes)
+                .sort((a, b) => b[1] - a[1]);
+            
+            let errorTypeHTML = '';
+            errorTypeList.forEach(([type, count]) => {
+                const percent = ((count / stats.total) * 100).toFixed(1);
+                errorTypeHTML += `<tr><td>${type}</td><td><strong>${count}</strong></td><td>${percent}%</td></tr>`;
+            });
+            document.getElementById('errorTypeBody').innerHTML = errorTypeHTML;
+        }
+
+        // 頁面切換功能
+        function showPage(page) {
+            // 更新選單狀態
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.nav-item').classList.add('active');
+
+            const container = document.querySelector('.container');
+
+            if (!analysisData && page !== 'upload' && page !== 'location-config' && page !== 'seniority-config') {
+                alert('請先上傳資料！');
+                showPage('upload');
+                return;
+            }
+
+            switch(page) {
+                case 'upload':
+                    location.reload();
+                    break;
+                case 'pharmacy':
+                    showPharmacyPage();
+                    break;
+                case 'source':
+                    showSourcePage();
+                    break;
+                case 'pharmacist':
+                    showPharmacistPage();
+                    break;
+                case 'seniority-analysis':
+                    showSeniorityAnalysisPage();
+                    break;
+                case 'location':
+                    showLocationPage();
+                    break;
+                case 'error':
+                    showErrorPage();
+                    break;
+                case 'sankey':
+                    showSankeyPage();
+                    break;
+                case 'location-config':
+                    showLocationConfigPage();
+                    break;
+                case 'seniority-config':
+                    showSeniorityConfigPage();
+                    break;
+            }
+        }
+
+        function showPharmacyPage() {
+            if (!analysisData) return;
+            
+            const container = document.querySelector('.container');
+            
+            // 計算各藥局統計
+            const pharmacyStats = {};
+            analysisData.forEach(row => {
+                const pharmacy = getPharmacyName(row);
+                const errorType = row['調劑疏失類型'];
+                if (pharmacy) {
+                    if (!pharmacyStats[pharmacy]) {
+                        pharmacyStats[pharmacy] = { total: 0, types: {} };
+                    }
+                    pharmacyStats[pharmacy].total++;
+                    if (errorType) {
+                        pharmacyStats[pharmacy].types[errorType] = 
+                            (pharmacyStats[pharmacy].types[errorType] || 0) + 1;
+                    }
+                }
+            });
+            
+            const sortedPharmacies = Object.entries(pharmacyStats).sort((a, b) => b[1].total - a[1].total);
+            
+            let html = `
+                <h1>調劑藥局分析</h1>
+                <p class="subtitle">各藥局疏失統計與類型分析</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 30px 0;">
+                    ${sortedPharmacies.slice(0, 4).map(([name, data]) => `
+                        <div class="stat-card">
+                            <div class="stat-label">${name}</div>
+                            <div class="stat-value">${data.total}</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                ${((data.total / analysisData.length) * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <h3 style="color: #1e3a5f; margin: 30px 0 15px 0;">各藥局詳細分析</h3>
+            `;
+            
+            sortedPharmacies.forEach(([name, data]) => {
+                const topTypes = Object.entries(data.types).sort((a, b) => b[1] - a[1]).slice(0, 5);
+                html += `
+                    <div style="background: white; padding: 25px; margin-bottom: 20px; border-radius: 10px; border-left: 4px solid #4a90e2;">
+                        <h4 style="color: #1e3a5f; margin-bottom: 15px;">${name} (${data.total} 筆)</h4>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f8f9fa;">
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">疏失類型</th>
+                                    <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">次數</th>
+                                    <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">佔該局比例</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${topTypes.map(([type, count]) => `
+                                    <tr>
+                                        <td style="padding: 10px; border-bottom: 1px solid #eee;">${type}</td>
+                                        <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><strong>${count}</strong></td>
+                                        <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">
+                                            ${((count / data.total) * 100).toFixed(1)}%
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function showSourcePage() {
+            if (!analysisData) return;
+            
+            const container = document.querySelector('.container');
+            
+            const sourceNames = { 'O': '門診處方', 'I': '住院處方', 'E': '急診處方' };
+            const sourceStats = {};
+            
+            analysisData.forEach(row => {
+                const source = row['處方來源'];
+                const errorType = row['調劑疏失類型'];
+                const pharmacy = getPharmacyName(row);
+                
+                if (source) {
+                    if (!sourceStats[source]) {
+                        sourceStats[source] = { total: 0, types: {}, pharmacies: {} };
+                    }
+                    sourceStats[source].total++;
+                    if (errorType) {
+                        sourceStats[source].types[errorType] = 
+                            (sourceStats[source].types[errorType] || 0) + 1;
+                    }
+                    if (pharmacy) {
+                        sourceStats[source].pharmacies[pharmacy] = 
+                            (sourceStats[source].pharmacies[pharmacy] || 0) + 1;
+                    }
+                }
+            });
+            
+            const sortedSources = Object.entries(sourceStats).sort((a, b) => b[1].total - a[1].total);
+            
+            let html = `
+                <h1>處方來源分析</h1>
+                <p class="subtitle">門診、住院、急診處方疏失統計</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 30px 0;">
+                    ${sortedSources.map(([code, data]) => `
+                        <div class="stat-card">
+                            <div class="stat-label">${sourceNames[code] || code}</div>
+                            <div class="stat-value">${data.total}</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                ${((data.total / analysisData.length) * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <h3 style="color: #1e3a5f; margin: 30px 0 15px 0;">各處方來源詳細分析</h3>
+            `;
+            
+            sortedSources.forEach(([code, data]) => {
+                const topTypes = Object.entries(data.types).sort((a, b) => b[1] - a[1]).slice(0, 5);
+                const topPharmacies = Object.entries(data.pharmacies).sort((a, b) => b[1] - a[1]).slice(0, 5);
+                
+                html += `
+                    <div style="background: white; padding: 25px; margin-bottom: 20px; border-radius: 10px; border-left: 4px solid #4a90e2;">
+                        <h4 style="color: #1e3a5f; margin-bottom: 15px;">${sourceNames[code] || code} (${data.total} 筆)</h4>
+                        
+                        <h5 style="color: #374151; margin: 15px 0 10px 0;">疏失類型分布</h5>
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                            <thead>
+                                <tr style="background: #f8f9fa;">
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">疏失類型</th>
+                                    <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">次數</th>
+                                    <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">比例</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${topTypes.map(([type, count]) => `
+                                    <tr>
+                                        <td style="padding: 10px; border-bottom: 1px solid #eee;">${type}</td>
+                                        <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><strong>${count}</strong></td>
+                                        <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">
+                                            ${((count / data.total) * 100).toFixed(1)}%
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        
+                        <h5 style="color: #374151; margin: 15px 0 10px 0;">主要藥局分布</h5>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f8f9fa;">
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">藥局</th>
+                                    <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">次數</th>
+                                    <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">比例</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${topPharmacies.map(([pharmacy, count]) => `
+                                    <tr>
+                                        <td style="padding: 10px; border-bottom: 1px solid #eee;">${pharmacy}</td>
+                                        <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><strong>${count}</strong></td>
+                                        <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">
+                                            ${((count / data.total) * 100).toFixed(1)}%
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function showPharmacistPage() {
+            if (!analysisData) return;
+            
+            const container = document.querySelector('.container');
+            
+            // 重新計算完整的藥師統計（使用儲位過濾邏輯）
+            const pharmacistStats = {};
+            const discovererStats = {};
+            const reviewerMissStats = {}; // 新增：審核疏失統計（建構者=發藥藥師時的審核藥師）
+            
+            analysisData.forEach(row => {
+                const builder = row['建構者'];
+                const reviewer = row['審核藥師'];
+                const dispenser = row['發藥藥師'];
+                const errorType = row['調劑疏失類型'];
+                const dispensingType = row['調劑種類'];
+                
+                // 發現藥師統計（排除建構者=發藥藥師的情況）
+                // 建構者=發藥藥師時，不列入發現藥師排行，只統計審核疏失
+                if (builder && !(builder && dispenser && String(builder).trim() === String(dispenser).trim())) {
+                    if (!discovererStats[builder]) discovererStats[builder] = 0;
+                    discovererStats[builder]++;
+                }
+                
+                // 審核疏失統計：建構者 = 發藥藥師時，統計審核藥師
+                if (builder && dispenser && String(builder).trim() === String(dispenser).trim()) {
+                    if (reviewer) {
+                        const reviewerName = String(reviewer).trim();
+                        
+                        // 統計到 reviewerMissStats（審核疏失排行用）
+                        if (!reviewerMissStats[reviewerName]) {
+                            reviewerMissStats[reviewerName] = { total: 0, types: {} };
+                        }
+                        reviewerMissStats[reviewerName].total++;
+                        if (errorType) {
+                            reviewerMissStats[reviewerName].types[errorType] = 
+                                (reviewerMissStats[reviewerName].types[errorType] || 0) + 1;
+                        }
+                        
+                        // 同時統計到 pharmacistStats（疏失藥師排行用）
+                        if (!pharmacistStats[reviewerName]) {
+                            pharmacistStats[reviewerName] = { total: 0, oral: 0, water: 0, review: 0, types: {} };
+                        }
+                        pharmacistStats[reviewerName].total++;
+                        pharmacistStats[reviewerName].review++;
+                        if (errorType) {
+                            pharmacistStats[reviewerName].types[errorType] = 
+                                (pharmacistStats[reviewerName].types[errorType] || 0) + 1;
+                        }
+                    }
+                }
+                
+                // 疏失藥師統計（完整邏輯，細分口調/水雜/審核）
+                let discoveryType = '審核藥師發現'; // 預設為審核藥師發現
+                // 特殊調劑種類判定
+                if (dispensingType && ['首日量', 'UD過檔', 'PRN確認'].includes(String(dispensingType).trim())) {
+                    discoveryType = '審核藥師發現';
+                } else if (builder && dispenser && String(builder).trim() === String(dispenser).trim()) {
+                    discoveryType = '發藥藥師發現';
+                } else {
+                    discoveryType = '審核藥師發現';
+                }
+                
+                let correctLocationType = '未分類';
+                if (row['儲位']) {
+                    const loc = String(row['儲位']).substring(0, 2).toUpperCase();
+                    if (locationConfig['專用台'].includes(loc)) correctLocationType = '專用台';
+                    else if (locationConfig['一般台'].includes(loc)) correctLocationType = '一般台';
+                }
+                
+                const oralPharmacist = row['口調藥師'] ? String(row['口調藥師']).trim() : null;
+                const waterPharmacist = row['水雜藥師'] ? String(row['水雜藥師']).trim() : null;
+                const reviewerName = reviewer ? String(reviewer).trim() : null;
+                const dispenserName = dispenser ? String(dispenser).trim() : null;
+                const isSamePerson = oralPharmacist && waterPharmacist && oralPharmacist === waterPharmacist;
+                
+                // 記錄各類型疏失
+                if (discoveryType === '審核藥師發現') {
+                    if (isSamePerson) {
+                        if (correctLocationType === '一般台' && oralPharmacist) {
+                            if (!pharmacistStats[oralPharmacist]) {
+                                pharmacistStats[oralPharmacist] = { total: 0, oral: 0, water: 0, review: 0, types: {} };
+                            }
+                            pharmacistStats[oralPharmacist].total++;
+                            pharmacistStats[oralPharmacist].oral++;
+                            if (errorType) {
+                                pharmacistStats[oralPharmacist].types[errorType] = 
+                                    (pharmacistStats[oralPharmacist].types[errorType] || 0) + 1;
+                            }
+                        } else if (correctLocationType === '專用台' && waterPharmacist) {
+                            if (!pharmacistStats[waterPharmacist]) {
+                                pharmacistStats[waterPharmacist] = { total: 0, oral: 0, water: 0, review: 0, types: {} };
+                            }
+                            pharmacistStats[waterPharmacist].total++;
+                            pharmacistStats[waterPharmacist].water++;
+                            if (errorType) {
+                                pharmacistStats[waterPharmacist].types[errorType] = 
+                                    (pharmacistStats[waterPharmacist].types[errorType] || 0) + 1;
+                            }
+                        } else if (oralPharmacist) {
+                            if (!pharmacistStats[oralPharmacist]) {
+                                pharmacistStats[oralPharmacist] = { total: 0, oral: 0, water: 0, review: 0, types: {} };
+                            }
+                            pharmacistStats[oralPharmacist].total++;
+                            pharmacistStats[oralPharmacist].oral++;
+                            if (errorType) {
+                                pharmacistStats[oralPharmacist].types[errorType] = 
+                                    (pharmacistStats[oralPharmacist].types[errorType] || 0) + 1;
+                            }
+                        }
+                    } else {
+                        if (oralPharmacist && correctLocationType !== '專用台') {
+                            if (!pharmacistStats[oralPharmacist]) {
+                                pharmacistStats[oralPharmacist] = { total: 0, oral: 0, water: 0, review: 0, types: {} };
+                            }
+                            pharmacistStats[oralPharmacist].total++;
+                            pharmacistStats[oralPharmacist].oral++;
+                            if (errorType) {
+                                pharmacistStats[oralPharmacist].types[errorType] = 
+                                    (pharmacistStats[oralPharmacist].types[errorType] || 0) + 1;
+                            }
+                        }
+                        if (waterPharmacist && correctLocationType !== '一般台') {
+                            if (!pharmacistStats[waterPharmacist]) {
+                                pharmacistStats[waterPharmacist] = { total: 0, oral: 0, water: 0, review: 0, types: {} };
+                            }
+                            pharmacistStats[waterPharmacist].total++;
+                            pharmacistStats[waterPharmacist].water++;
+                            if (errorType) {
+                                pharmacistStats[waterPharmacist].types[errorType] = 
+                                    (pharmacistStats[waterPharmacist].types[errorType] || 0) + 1;
+                            }
+                        }
+                    }
+                } else if (discoveryType === '發藥藥師發現') {
+                    // 口調/水雜疏失
+                    if (isSamePerson) {
+                        if (correctLocationType === '一般台' && oralPharmacist) {
+                            if (!pharmacistStats[oralPharmacist]) {
+                                pharmacistStats[oralPharmacist] = { total: 0, oral: 0, water: 0, review: 0, types: {} };
+                            }
+                            pharmacistStats[oralPharmacist].total++;
+                            pharmacistStats[oralPharmacist].oral++;
+                            if (errorType) {
+                                pharmacistStats[oralPharmacist].types[errorType] = 
+                                    (pharmacistStats[oralPharmacist].types[errorType] || 0) + 1;
+                            }
+                        } else if (correctLocationType === '專用台' && waterPharmacist) {
+                            if (!pharmacistStats[waterPharmacist]) {
+                                pharmacistStats[waterPharmacist] = { total: 0, oral: 0, water: 0, review: 0, types: {} };
+                            }
+                            pharmacistStats[waterPharmacist].total++;
+                            pharmacistStats[waterPharmacist].water++;
+                            if (errorType) {
+                                pharmacistStats[waterPharmacist].types[errorType] = 
+                                    (pharmacistStats[waterPharmacist].types[errorType] || 0) + 1;
+                            }
+                        } else if (oralPharmacist) {
+                            if (!pharmacistStats[oralPharmacist]) {
+                                pharmacistStats[oralPharmacist] = { total: 0, oral: 0, water: 0, review: 0, types: {} };
+                            }
+                            pharmacistStats[oralPharmacist].total++;
+                            pharmacistStats[oralPharmacist].oral++;
+                            if (errorType) {
+                                pharmacistStats[oralPharmacist].types[errorType] = 
+                                    (pharmacistStats[oralPharmacist].types[errorType] || 0) + 1;
+                            }
+                        }
+                    } else {
+                        if (oralPharmacist && correctLocationType !== '專用台') {
+                            if (!pharmacistStats[oralPharmacist]) {
+                                pharmacistStats[oralPharmacist] = { total: 0, oral: 0, water: 0, review: 0, types: {} };
+                            }
+                            pharmacistStats[oralPharmacist].total++;
+                            pharmacistStats[oralPharmacist].oral++;
+                            if (errorType) {
+                                pharmacistStats[oralPharmacist].types[errorType] = 
+                                    (pharmacistStats[oralPharmacist].types[errorType] || 0) + 1;
+                            }
+                        }
+                        if (waterPharmacist && correctLocationType !== '一般台') {
+                            if (!pharmacistStats[waterPharmacist]) {
+                                pharmacistStats[waterPharmacist] = { total: 0, oral: 0, water: 0, review: 0, types: {} };
+                            }
+                            pharmacistStats[waterPharmacist].total++;
+                            pharmacistStats[waterPharmacist].water++;
+                            if (errorType) {
+                                pharmacistStats[waterPharmacist].types[errorType] = 
+                                    (pharmacistStats[waterPharmacist].types[errorType] || 0) + 1;
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const sortedPharmacists = Object.entries(pharmacistStats).sort((a, b) => b[1].total - a[1].total);
+            const sortedDiscoverers = Object.entries(discovererStats).sort((a, b) => b[1] - a[1]);
+            
+            let html = `
+                <h1>藥師分析</h1>
+                <p class="subtitle">完整的藥師疏失與發現統計分析</p>
+                
+                <h3 style="color: #1e3a5f; margin: 30px 0 15px 0;">疏失藥師完整排行（含儲位過濾邏輯）</h3>
+                <div style="background: #e8f3ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #4a90e2;">
+                    <p style="color: #1e3a5f; margin: 0; font-size: 14px;">
+                        <strong>📊 說明：</strong>疏失次數 = 口調疏失 + 水雜疏失 + 審核疏失（發藥藥師發現時）
+                    </p>
+                </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #4a90e2; color: white;">
+                            <th style="padding: 12px; text-align: left;">排名</th>
+                            <th style="padding: 12px; text-align: left;">藥師</th>
+                            <th style="padding: 12px; text-align: right;">總計</th>
+                            <th style="padding: 12px; text-align: right;">口調<br/>(一般台)</th>
+                            <th style="padding: 12px; text-align: right;">水雜<br/>(專用台)</th>
+                            <th style="padding: 12px; text-align: right;">審核<br/>疏失</th>
+                            <th style="padding: 12px; text-align: left;">前兩大疏失類型</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sortedPharmacists.slice(0, 20).map(([name, data], i) => {
+                            const topTypes = Object.entries(data.types).sort((a, b) => b[1] - a[1]).slice(0, 2);
+                            const typeDisplay = topTypes.map(([type, count]) => 
+                                `<span style="display: inline-block; background: #e8f3ff; padding: 4px 10px; margin: 2px 4px 2px 0; border-radius: 4px; font-size: 13px;">
+                                    <strong>${type}</strong> (${count}次)
+                                </span>`
+                            ).join('');
+                            return `
+                                <tr style="${i % 2 === 0 ? 'background: #f8f9fa;' : ''}">
+                                    <td style="padding: 12px;">${i + 1}</td>
+                                    <td style="padding: 12px;"><strong>${name}</strong></td>
+                                    <td style="padding: 12px; text-align: right;"><strong style="color: #e74c3c; font-size: 16px;">${data.total}</strong></td>
+                                    <td style="padding: 12px; text-align: right;">${data.oral || 0}</td>
+                                    <td style="padding: 12px; text-align: right;">${data.water || 0}</td>
+                                    <td style="padding: 12px; text-align: right;"><span style="color: #f59e0b; font-weight: bold;">${data.review || 0}</span></td>
+                                    <td style="padding: 12px;">${typeDisplay || '-'}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+                
+                <h3 style="color: #1e3a5f; margin: 30px 0 15px 0;">發現藥師完整排行（建構者）</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #4a90e2; color: white;">
+                            <th style="padding: 12px; text-align: left;">排名</th>
+                            <th style="padding: 12px; text-align: left;">建構者</th>
+                            <th style="padding: 12px; text-align: right;">發現次數</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sortedDiscoverers.slice(0, 20).map(([name, count], i) => `
+                            <tr style="${i % 2 === 0 ? 'background: #f8f9fa;' : ''}">
+                                <td style="padding: 12px;">${i + 1}</td>
+                                <td style="padding: 12px;"><strong>${name}</strong></td>
+                                <td style="padding: 12px; text-align: right;"><strong style="color: #27ae60;">${count}</strong></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                
+                <h3 style="color: #1e3a5f; margin: 30px 0 15px 0;">⚠️ 審核疏失藥師排行 TOP 20（發藥藥師發現時的審核藥師）</h3>
+                <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #f59e0b;">
+                    <p style="color: #92400e; margin: 0; font-size: 14px;">
+                        <strong>📌 說明：</strong>這些是「建構者 = 發藥藥師」時的審核藥師，表示審核時未發現疏失，由發藥藥師發現。
+                    </p>
+                </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f59e0b; color: white;">
+                            <th style="padding: 12px; text-align: left;">排名</th>
+                            <th style="padding: 12px; text-align: left;">審核藥師</th>
+                            <th style="padding: 12px; text-align: right;">審核疏失次數</th>
+                            <th style="padding: 12px; text-align: left;">前兩大疏失類型</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${(() => {
+                            const sortedReviewerMiss = Object.entries(reviewerMissStats).sort((a, b) => b[1].total - a[1].total);
+                            return sortedReviewerMiss.slice(0, 20).map(([name, data], i) => {
+                                const topTypes = Object.entries(data.types).sort((a, b) => b[1] - a[1]).slice(0, 2);
+                                const typeDisplay = topTypes.map(([type, count]) => 
+                                    `<span style="display: inline-block; background: #fef3c7; padding: 4px 10px; margin: 2px 4px 2px 0; border-radius: 4px; font-size: 13px;">
+                                        <strong>${type}</strong> (${count}次)
+                                    </span>`
+                                ).join('');
+                                return `
+                                    <tr style="${i % 2 === 0 ? 'background: #f8f9fa;' : ''}">
+                                        <td style="padding: 12px;">${i + 1}</td>
+                                        <td style="padding: 12px;"><strong>${name}</strong></td>
+                                        <td style="padding: 12px; text-align: right;"><strong style="color: #f59e0b; font-size: 16px;">${data.total}</strong></td>
+                                        <td style="padding: 12px;">${typeDisplay || '-'}</td>
+                                    </tr>
+                                `;
+                            }).join('');
+                        })()}
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function showLocationPage() {
+            if (!analysisData) return;
+            
+            const container = document.querySelector('.container');
+            
+            const locationStats = { '專用台': {}, '一般台': {}, '未分類': {} };
+            const stationCounts = { '專用台': 0, '一般台': 0, '未分類': 0 };
+            
+            analysisData.forEach(row => {
+                if (row['儲位']) {
+                    const loc = String(row['儲位']).substring(0, 2).toUpperCase();
+                    let type = '未分類';
+                    if (locationConfig['專用台'].includes(loc)) type = '專用台';
+                    else if (locationConfig['一般台'].includes(loc)) type = '一般台';
+                    
+                    stationCounts[type]++;
+                    locationStats[type][loc] = (locationStats[type][loc] || 0) + 1;
+                }
+            });
+            
+            let html = `
+                <h1>儲位分析</h1>
+                <p class="subtitle">各儲位區域疏失統計與台別分析</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 30px 0;">
+                    <div class="stat-card" style="border-left: 4px solid #4a90e2;">
+                        <div class="stat-label">專用台疏失</div>
+                        <div class="stat-value">${stationCounts['專用台']}</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                            ${((stationCounts['專用台'] / analysisData.length) * 100).toFixed(1)}%
+                        </div>
+                    </div>
+                    <div class="stat-card" style="border-left: 4px solid #f59e0b;">
+                        <div class="stat-label">一般台疏失</div>
+                        <div class="stat-value">${stationCounts['一般台']}</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                            ${((stationCounts['一般台'] / analysisData.length) * 100).toFixed(1)}%
+                        </div>
+                    </div>
+                    <div class="stat-card" style="border-left: 4px solid #9ca3af; background: #f3f4f6;">
+                        <div class="stat-label" style="color: #6b7280;">未分類</div>
+                        <div class="stat-value" style="color: #6b7280;">${stationCounts['未分類']}</div>
+                        <div style="font-size: 12px; color: #9ca3af; margin-top: 5px;">
+                            ${((stationCounts['未分類'] / analysisData.length) * 100).toFixed(1)}%
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 30px;">
+                    <div>
+                        <h3 style="color: #1e3a5f; margin-bottom: 15px;">🔷 專用台儲位分布</h3>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #4a90e2; color: white;">
+                                    <th style="padding: 10px; text-align: left;">儲位</th>
+                                    <th style="padding: 10px; text-align: right;">次數</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${Object.entries(locationStats['專用台'])
+                                    .sort((a, b) => b[1] - a[1])
+                                    .map(([loc, count], i) => `
+                                        <tr style="${i % 2 === 0 ? 'background: #f8f9fa;' : ''}">
+                                            <td style="padding: 10px;">${loc}</td>
+                                            <td style="padding: 10px; text-align: right;"><strong>${count}</strong></td>
+                                        </tr>
+                                    `).join('') || '<tr><td colspan="2" style="padding: 20px; text-align: center; color: #999;">無資料</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div>
+                        <h3 style="color: #1e3a5f; margin-bottom: 15px;">🔶 一般台儲位分布</h3>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f59e0b; color: white;">
+                                    <th style="padding: 10px; text-align: left;">儲位</th>
+                                    <th style="padding: 10px; text-align: right;">次數</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${Object.entries(locationStats['一般台'])
+                                    .sort((a, b) => b[1] - a[1])
+                                    .map(([loc, count], i) => `
+                                        <tr style="${i % 2 === 0 ? 'background: #f8f9fa;' : ''}">
+                                            <td style="padding: 10px;">${loc}</td>
+                                            <td style="padding: 10px; text-align: right;"><strong>${count}</strong></td>
+                                        </tr>
+                                    `).join('') || '<tr><td colspan="2" style="padding: 20px; text-align: center; color: #999;">無資料</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div>
+                        <h3 style="color: #6b7280; margin-bottom: 15px;">⚠️ 未分類儲位分布</h3>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #9ca3af; color: white;">
+                                    <th style="padding: 10px; text-align: left;">儲位</th>
+                                    <th style="padding: 10px; text-align: right;">次數</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${Object.entries(locationStats['未分類'])
+                                    .sort((a, b) => b[1] - a[1])
+                                    .map(([loc, count], i) => `
+                                        <tr style="${i % 2 === 0 ? 'background: #f8f9fa;' : ''}">
+                                            <td style="padding: 10px;">${loc}</td>
+                                            <td style="padding: 10px; text-align: right;"><strong>${count}</strong></td>
+                                        </tr>
+                                    `).join('') || '<tr><td colspan="2" style="padding: 20px; text-align: center; color: #999;">無資料</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function showSeniorityAnalysisPage() {
+            if (!analysisData) return;
+            
+            const container = document.querySelector('.container');
+            
+            // 取得基準日期
+            let baseDate = localStorage.getItem('seniorityBaseDate');
+            if (!baseDate) {
+                const today = new Date();
+                baseDate = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+            }
+            const [year, month] = baseDate.split('-');
+            const baseDateTime = new Date(parseInt(year), parseInt(month) - 1, 1);
+            
+            // 計算年資（年）
+            function calculateYears(hireDate) {
+                if (!hireDate) return null;
+                const hire = new Date(hireDate);
+                return (baseDateTime - hire) / (365.25 * 24 * 60 * 60 * 1000);
+            }
+            
+            // 年資分組
+            function getSeniorityGroup(years) {
+                if (years === null) return '未知';
+                if (years < 0.5) return '6個月內';
+                if (years < 1) return '6個月-1年';
+                if (years < 2) return '1-2年';
+                if (years < 5) return '2-5年';
+                return '5年以上';
+            }
+            
+            // 計算疏失藥師統計（含儲位過濾邏輯）
+            const pharmacistErrorCount = {};
+            
+            analysisData.forEach(row => {
+                const builder = row['建構者'];
+                const reviewer = row['審核藥師'];
+                const dispenser = row['發藥藥師'];
+                const dispensingType = row['調劑種類'];
+                
+                let discoveryType = '審核藥師發現';
+                if (dispensingType && ['首日量', 'UD過檔', 'PRN確認'].includes(String(dispensingType).trim())) {
+                    discoveryType = '審核藥師發現';
+                } else if (builder && dispenser && String(builder).trim() === String(dispenser).trim()) {
+                    discoveryType = '發藥藥師發現';
+                }
+                
+                let correctLocationType = '未分類';
+                if (row['儲位']) {
+                    const loc = String(row['儲位']).substring(0, 2).toUpperCase();
+                    if (locationConfig['專用台'].includes(loc)) correctLocationType = '專用台';
+                    else if (locationConfig['一般台'].includes(loc)) correctLocationType = '一般台';
+                }
+                
+                const oralPharmacist = row['口調藥師'] ? String(row['口調藥師']).trim() : null;
+                const waterPharmacist = row['水雜藥師'] ? String(row['水雜藥師']).trim() : null;
+                const reviewerName = reviewer ? String(reviewer).trim() : null;
+                const dispenserName = dispenser ? String(dispenser).trim() : null;
+                const isSamePerson = oralPharmacist && waterPharmacist && oralPharmacist === waterPharmacist;
+                
+                const pharmacists = new Set();
+                
+                if (discoveryType === '審核藥師發現') {
+                    if (isSamePerson) {
+                        if (correctLocationType === '一般台' && oralPharmacist) pharmacists.add(oralPharmacist);
+                        else if (correctLocationType === '專用台' && waterPharmacist) pharmacists.add(waterPharmacist);
+                        else if (oralPharmacist) pharmacists.add(oralPharmacist);
+                    } else {
+                        if (oralPharmacist && correctLocationType !== '專用台') pharmacists.add(oralPharmacist);
+                        if (waterPharmacist && correctLocationType !== '一般台') pharmacists.add(waterPharmacist);
+                    }
+                } else {
+                    if (isSamePerson) {
+                        if (correctLocationType === '一般台' && oralPharmacist) pharmacists.add(oralPharmacist);
+                        else if (correctLocationType === '專用台' && waterPharmacist) pharmacists.add(waterPharmacist);
+                        else if (oralPharmacist) pharmacists.add(oralPharmacist);
+                    } else {
+                        if (oralPharmacist && correctLocationType !== '專用台') pharmacists.add(oralPharmacist);
+                        if (waterPharmacist && correctLocationType !== '一般台') pharmacists.add(waterPharmacist);
+                    }
+                    if (reviewerName) pharmacists.add(reviewerName);
+                }
+                
+                pharmacists.forEach(p => {
+                    pharmacistErrorCount[p] = (pharmacistErrorCount[p] || 0) + 1;
+                });
+            });
+            
+            // 統計各年資組的疏失數
+            const seniorityGroups = {
+                '6個月內': 0,
+                '6個月-1年': 0,
+                '1-2年': 0,
+                '2-5年': 0,
+                '5年以上': 0,
+                '未知': 0
+            };
+            
+            const seniorityDetails = {
+                '6個月內': [],
+                '6個月-1年': [],
+                '1-2年': [],
+                '2-5年': [],
+                '5年以上': [],
+                '未知': []
+            };
+            
+            Object.entries(pharmacistErrorCount).forEach(([name, count]) => {
+                const hireDate = seniorityData[name];
+                const years = calculateYears(hireDate);
+                const group = getSeniorityGroup(years);
+                
+                seniorityGroups[group] += count;
+                seniorityDetails[group].push({ name, count, years });
+            });
+            
+            const total = Object.values(seniorityGroups).reduce((a, b) => a + b, 0);
+            const groupOrder = ['6個月內', '6個月-1年', '1-2年', '2-5年', '5年以上', '未知'];
+            
+            // 顏色設定
+            const colors = {
+                '6個月內': '#ef4444',
+                '6個月-1年': '#f59e0b',
+                '1-2年': '#eab308',
+                '2-5年': '#22c55e',
+                '5年以上': '#3b82f6',
+                '未知': '#9ca3af'
+            };
+            
+            let html = `
+                <h1>📊 疏失藥師年資分布分析</h1>
+                <p class="subtitle">分析不同年資藥師的疏失分布情況（計算至：${baseDate.split('-')[0]}年${parseInt(baseDate.split('-')[1])}月）</p>
+                
+                ${Object.keys(seniorityData).length === 0 ? `
+                    <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                        <h3 style="color: #92400e; margin: 0 0 10px 0;">⚠️ 尚未設定藥師年資資料</h3>
+                        <p style="color: #78350f; margin: 0;">請先到「系統管理 → 📅 藥師年資管理」上傳年資資料，才能進行年資分布分析。</p>
+                    </div>
+                ` : ''}
+                
+                <!-- 統計卡片 -->
+                <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; margin: 30px 0;">
+                    ${groupOrder.map(group => `
+                        <div class="stat-card" style="border-left: 4px solid ${colors[group]};">
+                            <div class="stat-label">${group}</div>
+                            <div class="stat-value">${seniorityGroups[group]}</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                ${total > 0 ? ((seniorityGroups[group] / total) * 100).toFixed(1) : '0'}%
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <!-- 視覺化長條圖 -->
+                <div style="background: white; padding: 30px; border-radius: 10px; margin-top: 30px;">
+                    <h3 style="color: #1e3a5f; margin-bottom: 20px;">年資分布比例圖</h3>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        ${groupOrder.map(group => {
+                            const percentage = total > 0 ? (seniorityGroups[group] / total) * 100 : 0;
+                            return `
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                        <span style="font-weight: 500; color: #374151;">${group}</span>
+                                        <span style="font-weight: bold; color: ${colors[group]};">${seniorityGroups[group]} 筆 (${percentage.toFixed(1)}%)</span>
+                                    </div>
+                                    <div style="background: #e5e7eb; height: 30px; border-radius: 6px; overflow: hidden;">
+                                        <div style="background: ${colors[group]}; height: 100%; width: ${percentage}%; transition: width 0.5s;"></div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+                
+                <!-- 各年資組詳細列表 -->
+                ${groupOrder.filter(group => seniorityDetails[group].length > 0).map(group => `
+                    <div style="background: white; padding: 30px; border-radius: 10px; margin-top: 20px; border-left: 4px solid ${colors[group]};">
+                        <h3 style="color: #1e3a5f; margin-bottom: 15px;">
+                            ${group} 藥師明細（${seniorityDetails[group].length} 位，共 ${seniorityGroups[group]} 筆疏失）
+                        </h3>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: ${colors[group]}; color: white;">
+                                    <th style="padding: 12px; text-align: left;">藥師</th>
+                                    <th style="padding: 12px; text-align: right;">疏失次數</th>
+                                    <th style="padding: 12px; text-align: right;">年資</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${seniorityDetails[group].sort((a, b) => b.count - a.count).map((item, i) => `
+                                    <tr style="${i % 2 === 0 ? 'background: #f8f9fa;' : ''}">
+                                        <td style="padding: 12px;"><strong>${item.name}</strong></td>
+                                        <td style="padding: 12px; text-align: right;"><strong>${item.count}</strong></td>
+                                        <td style="padding: 12px; text-align: right;">${item.years !== null ? item.years.toFixed(1) + ' 年' : '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `).join('')}
+                
+                <!-- 分析說明 -->
+                <div style="background: #f0f7ff; padding: 25px; border-radius: 10px; margin-top: 30px; border-left: 4px solid #4a90e2;">
+                    <h4 style="color: #1e3a5f; margin-bottom: 15px;">💡 分析說明</h4>
+                    <ul style="margin-left: 20px; color: #666; line-height: 2;">
+                        <li><strong>6個月內：</strong>新進藥師，需加強基礎訓練與帶教</li>
+                        <li><strong>6個月-1年：</strong>適應期藥師，需持續追蹤與輔導</li>
+                        <li><strong>1-2年：</strong>成長期藥師，應逐漸獨立作業</li>
+                        <li><strong>2-5年：</strong>穩定期藥師，疏失應較少</li>
+                        <li><strong>5年以上：</strong>資深藥師，疏失應最少，可擔任帶教角色</li>
+                        <li><strong>未知：</strong>尚未建立年資資料的藥師</li>
+                    </ul>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function showErrorPage() {
+            if (!analysisData) return;
+            
+            const container = document.querySelector('.container');
+            
+            const errorTypeStats = {};
+            const discoveryTypeStats = { '審核藥師發現': 0, '發藥藥師發現': 0 };
+            
+            analysisData.forEach(row => {
+                if (row['調劑疏失類型']) {
+                    const type = row['調劑疏失類型'];
+                    errorTypeStats[type] = (errorTypeStats[type] || 0) + 1;
+                }
+                
+                const builder = row['建構者'];
+                const reviewer = row['審核藥師'];
+                const dispenser = row['發藥藥師'];
+                const dispensingType = row['調劑種類'];
+                
+                // 特殊調劑種類判定
+                if (dispensingType && ['首日量', 'UD過檔', 'PRN確認'].includes(String(dispensingType).trim())) {
+                    discoveryTypeStats['審核藥師發現']++;
+                } else if (builder && dispenser && String(builder).trim() === String(dispenser).trim()) {
+                    discoveryTypeStats['發藥藥師發現']++;
+                } else {
+                    discoveryTypeStats['審核藥師發現']++;
+                }
+            });
+            
+            const sortedErrors = Object.entries(errorTypeStats).sort((a, b) => b[1] - a[1]);
+            
+            let html = `
+                <h1>疏失原因分析</h1>
+                <p class="subtitle">各類型疏失統計與發現類型分析</p>
+                
+                <h3 style="color: #1e3a5f; margin: 30px 0 15px 0;">發現類型統計</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px;">
+                    ${Object.entries(discoveryTypeStats).map(([type, count]) => `
+                        <div class="stat-card">
+                            <div class="stat-label">${type}</div>
+                            <div class="stat-value">${count}</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                ${((count / analysisData.length) * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <h3 style="color: #1e3a5f; margin: 30px 0 15px 0;">疏失類型完整統計</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #4a90e2; color: white;">
+                            <th style="padding: 12px; text-align: left;">疏失類型</th>
+                            <th style="padding: 12px; text-align: right;">次數</th>
+                            <th style="padding: 12px; text-align: right;">百分比</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sortedErrors.map(([type, count], i) => `
+                            <tr style="${i % 2 === 0 ? 'background: #f8f9fa;' : ''}">
+                                <td style="padding: 12px;">${type}</td>
+                                <td style="padding: 12px; text-align: right;"><strong>${count}</strong></td>
+                                <td style="padding: 12px; text-align: right;">
+                                    ${((count / analysisData.length) * 100).toFixed(1)}%
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function showSankeyPage() {
+            if (!analysisData) return;
+            
+            const container = document.querySelector('.container');
+            
+            // 計算流程：處方來源 → 調劑藥局 → 發現類型 → 疏失類型
+            const flows = {};
+            const sourceNames = { 'O': '門診', 'I': '住院', 'E': '急診' };
+            
+            analysisData.forEach(row => {
+                const source = sourceNames[row['處方來源']] || row['處方來源'] || '未知';
+                const pharmacy = getPharmacyName(row).substring(0, 10); // 縮短名稱
+                const builder = row['建構者'];
+                const reviewer = row['審核藥師'];
+                const dispenser = row['發藥藥師'];
+                const dispensingType = row['調劑種類'];
+                const errorType = row['調劑疏失類型'] || '未知';
+                
+                // 判定發現類型（修正邏輯）
+                let discoveryType = '審核藥師';
+                if (dispensingType && ['首日量', 'UD過檔', 'PRN確認'].includes(String(dispensingType).trim())) {
+                    discoveryType = '審核藥師';
+                } else if (builder && dispenser && String(builder).trim() === String(dispenser).trim()) {
+                    discoveryType = '發藥藥師';
+                } else {
+                    discoveryType = '審核藥師';
+                }
+                
+                // 流程: 處方來源 → 發現類型 → 疏失類型
+                const flow1 = `${source}→${discoveryType}`;
+                flows[flow1] = (flows[flow1] || 0) + 1;
+                
+                const flow2 = `${discoveryType}→${errorType}`;
+                flows[flow2] = (flows[flow2] || 0) + 1;
+            });
+            
+            const sortedFlows = Object.entries(flows).sort((a, b) => b[1] - a[1]);
+            
+            container.innerHTML = `
+                <h1>📊 桑基圖分析</h1>
+                <p class="subtitle">疏失流程視覺化分析</p>
+                
+                <div style="background: white; padding: 30px; border-radius: 10px; margin-top: 30px;">
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; text-align: center;">
+                        <div style="display: inline-flex; align-items: center; gap: 20px;">
+                            <div><strong>📋 處方來源</strong></div>
+                            <div style="font-size: 24px; color: #4a90e2;">→</div>
+                            <div><strong>🔍 發現類型</strong></div>
+                            <div style="font-size: 24px; color: #4a90e2;">→</div>
+                            <div><strong>⚠️ 疏失類型</strong></div>
+                        </div>
+                    </div>
+                    
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #4a90e2; color: white;">
+                                <th style="padding: 12px; text-align: left;">流程路徑</th>
+                                <th style="padding: 12px; text-align: right;">數量</th>
+                                <th style="padding: 12px; text-align: right;">佔比</th>
+                                <th style="padding: 12px;">視覺化</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sortedFlows.map(([flow, count], i) => {
+                                const percent = ((count / analysisData.length) * 100).toFixed(1);
+                                const barWidth = Math.min(100, Math.max(5, percent * 5));
+                                return `
+                                    <tr style="${i % 2 === 0 ? 'background: #f8f9fa;' : ''}">
+                                        <td style="padding: 12px;">${flow}</td>
+                                        <td style="padding: 12px; text-align: right;"><strong>${count}</strong></td>
+                                        <td style="padding: 12px; text-align: right;">${percent}%</td>
+                                        <td style="padding: 12px;">
+                                            <div style="background: linear-gradient(90deg, #4a90e2, #357abd); height: 10px; width: ${barWidth}%; border-radius: 4px;"></div>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function showLocationConfigPage() {
+            const container = document.querySelector('.container');
+            
+            container.innerHTML = `
+                <h1>🔧 儲位維護</h1>
+                <p class="subtitle">設定儲位屬於專用台或一般台（輸入前兩碼即可，用逗號分隔，例如：A2, F4, K5）</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px;">
+                    <!-- 專用台 -->
+                    <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h3 style="color: #1e3a5f; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 24px;">🔷</span>
+                            專用台儲位
+                        </h3>
+                        
+                        <textarea id="specialLocations" 
+                                  style="width: 100%; height: 150px; padding: 15px; border: 2px solid #4a90e2; border-radius: 8px; font-size: 16px; font-family: 'Courier New', monospace; resize: vertical; line-height: 1.8;"
+                                  placeholder="請輸入儲位前綴，用逗號分隔，例如：A9, K5, P1, P4">${locationConfig['專用台'].join(', ')}</textarea>
+                        
+                        <div style="margin-top: 15px; color: #666; font-size: 14px;">
+                            💡 用逗號（,）分隔每個儲位，例如：A9, K5, P1
+                        </div>
+                    </div>
+                    
+                    <!-- 一般台 -->
+                    <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h3 style="color: #1e3a5f; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 24px;">🔶</span>
+                            一般台儲位
+                        </h3>
+                        
+                        <textarea id="generalLocations" 
+                                  style="width: 100%; height: 150px; padding: 15px; border: 2px solid #f59e0b; border-radius: 8px; font-size: 16px; font-family: 'Courier New', monospace; resize: vertical; line-height: 1.8;"
+                                  placeholder="請輸入儲位前綴，用逗號分隔，例如：A4, D2, F1, C3">${locationConfig['一般台'].join(', ')}</textarea>
+                        
+                        <div style="margin-top: 15px; color: #666; font-size: 14px;">
+                            💡 用逗號（,）分隔每個儲位，例如：A4, D2, F1
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 操作按鈕 -->
+                <div style="background: white; padding: 25px; border-radius: 10px; margin-top: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <button onclick="saveSimpleLocationConfig()" class="btn" style="padding: 12px 30px; font-size: 16px; margin-right: 15px;">
+                        💾 儲存設定
+                    </button>
+                    <button onclick="downloadLocationConfig()" class="btn" style="padding: 12px 30px; font-size: 16px; background: #6c757d; color: white;">
+                        📥 下載 JSON 檔案
+                    </button>
+                    <button onclick="resetToDefault()" class="btn" style="padding: 12px 30px; font-size: 16px; background: #dc2626; color: white; margin-left: 15px;">
+                        🔄 恢復預設值
+                    </button>
+                </div>
+                
+                <!-- 使用說明 -->
+                <div style="background: #f0f7ff; padding: 25px; border-radius: 10px; margin-top: 20px; border-left: 4px solid #4a90e2;">
+                    <h4 style="color: #1e3a5f; margin-bottom: 15px;">📖 使用說明</h4>
+                    <ul style="margin-left: 20px; color: #666; line-height: 2;">
+                        <li><strong>輸入格式：</strong>用逗號（,）分隔每個儲位，例如：A9, K5, P1, P4</li>
+                        <li><strong>儲位前綴：</strong>使用前兩個字元（例如：A206 → A2, F405 → F4）</li>
+                        <li><strong>新增儲位：</strong>直接在文字框最後加上「, A5」就可以新增 A5</li>
+                        <li><strong>刪除儲位：</strong>直接刪除文字即可，例如刪掉「P4, 」</li>
+                        <li><strong>大小寫：</strong>系統會自動轉為大寫，所以 a2 和 A2 都可以</li>
+                        <li><strong>去重：</strong>系統會自動移除重複的儲位</li>
+                        <li><strong>儲存：</strong>修改完成後，點擊「💾 儲存設定」，設定會立即生效</li>
+                    </ul>
+                </div>
+                
+                <!-- 目前設定預覽 -->
+                <div style="background: white; padding: 25px; border-radius: 10px; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <h4 style="color: #1e3a5f; margin-bottom: 15px;">📋 目前設定預覽</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <strong style="color: #4a90e2;">專用台（${locationConfig['專用台'].length} 個）：</strong>
+                            <div style="color: #666; margin-top: 8px; line-height: 1.8;">${locationConfig['專用台'].sort().join(', ')}</div>
+                        </div>
+                        <div>
+                            <strong style="color: #f59e0b;">一般台（${locationConfig['一般台'].length} 個）：</strong>
+                            <div style="color: #666; margin-top: 8px; line-height: 1.8;">${locationConfig['一般台'].sort().join(', ')}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function saveSimpleLocationConfig() {
+            try {
+                // 讀取文字區域的內容
+                const specialText = document.getElementById('specialLocations').value;
+                const generalText = document.getElementById('generalLocations').value;
+                
+                // 用逗號分隔並清理
+                const specialArray = specialText.split(',')
+                    .map(s => s.trim().toUpperCase())
+                    .filter(s => s.length > 0 && s.length <= 3);
+                
+                const generalArray = generalText.split(',')
+                    .map(s => s.trim().toUpperCase())
+                    .filter(s => s.length > 0 && s.length <= 3);
+                
+                // 去重
+                const specialUnique = [...new Set(specialArray)];
+                const generalUnique = [...new Set(generalArray)];
+                
+                // 檢查是否有重複（同時在兩個列表中）
+                const duplicates = specialUnique.filter(s => generalUnique.includes(s));
+                if (duplicates.length > 0) {
+                    alert('⚠️ 以下儲位同時出現在專用台和一般台中：\n\n' + duplicates.join(', ') + '\n\n請移除重複項目！');
+                    return;
+                }
+                
+                // 更新設定
+                locationConfig['專用台'] = specialUnique.sort();
+                locationConfig['一般台'] = generalUnique.sort();
+                
+                // 儲存到 localStorage
+                localStorage.setItem('locationConfig', JSON.stringify(locationConfig));
+                
+                // 重新顯示頁面
+                showLocationConfigPage();
+                
+                alert('✅ 設定已儲存！\n\n專用台：' + specialUnique.length + ' 個儲位\n一般台：' + generalUnique.length + ' 個儲位\n\n設定會在下次分析時自動套用。');
+                
+                // 如果已有分析資料，提示重新分析
+                if (analysisData) {
+                    if (confirm('是否要重新分析資料以套用新設定？')) {
+                        location.reload();
+                    }
+                }
+            } catch (e) {
+                alert('❌ 儲存失敗：' + e.message);
+            }
+        }
+
+        function resetToDefault() {
+            if (!confirm('確定要恢復為預設的儲位設定嗎？\n\n這將會覆蓋目前的所有設定！')) {
+                return;
+            }
+            
+            locationConfig['專用台'] = ["A9", "AD", "ADC", "E8", "E9", "G1", "G2", "G3", "G4", "H1", "H2", "H3", "H4", "I1", "I2", "I3", "I4", "I5", "I6", "I7", "I8", "I9", "J1", "J2", "J3", "J4", "K1", "K2", "K3", "K4", "K5", "K7", "K8", "K9", "L0", "L6", "L8", "L9", "M1", "M2", "M3", "M4", "P1", "P2", "P4", "RE", "S4", "TB", "V0", "V0+", "W6", "W7", "W8", "W9", "Z9", "丸0", "自0", "臨0", "臨1", "臨2", "臨3", "臨4", "臨5", "臨6", "臨7", "臨8", "臨9", "藥庫"];
+            locationConfig['一般台'] = ["0", "00", "001", "002", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012", "013", "014", "015", "016", "017", "018", "019", "020", "021", "022", "023", "024", "025", "026", "027", "028", "029", "030", "031", "032", "033", "034", "035", "036", "037", "038", "039", "040", "041", "042", "043", "044", "045", "046", "047", "048", "049", "050", "051", "052", "053", "054", "055", "056", "057", "058", "059", "060", "061", "062", "063", "064", "065", "066", "067", "068", "069", "070", "071", "072", "073", "074", "075", "076", "077", "078", "079", "080", "081", "082", "083", "084", "085", "086", "087", "088", "089", "090", "091", "092", "093", "094", "095", "096", "097", "098", "099", "02", "04", "06", "08", "09", "10", "100", "101", "102", "103", "104", "105", "106", "107", "108", "109", "110", "111", "112", "113", "114", "115", "116", "117", "118", "119", "120", "121", "122", "123", "124", "125", "126", "127", "128", "129", "130", "131", "132", "133", "134", "135", "136", "137", "138", "139", "14", "140", "141", "142", "143", "144", "145", "146", "147", "148", "149", "150", "151", "152", "153", "154", "155", "156", "157", "158", "159", "160", "161", "162", "163", "164", "165", "166", "167", "168", "169", "17", "170", "171", "172", "173", "174", "175", "176", "177", "178", "179", "18", "180", "181", "182", "183", "184", "185", "186", "187", "188", "189", "190", "191", "192", "193", "194", "195", "196", "197", "198", "199", "2", "200", "201", "202", "203", "204", "205", "206", "207", "208", "209", "210", "211", "212", "213", "214", "215", "216", "217", "218", "219", "220", "221", "222", "223", "224", "225", "226", "227", "228", "229", "230", "231", "232", "233", "234", "235", "236", "237", "238", "239", "24", "240", "241", "242", "243", "244", "245", "246", "247", "248", "249", "250", "251", "252", "253", "254", "255", "256", "257", "258", "259", "260", "261", "262", "263", "264", "265", "266", "267", "268", "269", "270", "271", "272", "273", "274", "275", "276", "277", "278", "279", "280", "281", "282", "283", "284", "285", "286", "287", "288", "289", "29", "290", "291", "292", "293", "294", "295", "296", "297", "298", "299", "300", "4", "6", "8", "9", "A0", "A1", "A2", "A3", "A4", "A5", "B1", "B2", "B3", "B4", "B5", "C1", "C2", "C3", "C4", "C5", "D1", "D2", "D3", "D4", "D5", "E1", "E2", "E3", "E4", "E5", "F1", "F2", "F3", "F4", "F5", "L5", "W0", "W1", "W2", "W3", "W4", "Z1", "Z2", "Z3", "Z4", "Z5"];
+            
+            localStorage.setItem('locationConfig', JSON.stringify(locationConfig));
+            showLocationConfigPage();
+            alert('✅ 已恢復為預設設定！');
+        }
+
+        function downloadLocationConfig() {
+            const config = {
+                "專用台儲位": locationConfig['專用台'].sort(),
+                "一般台儲位": locationConfig['一般台'].sort(),
+                "備註": "此檔案用於設定儲位屬於專用台或一般台（依正確藥品儲位前兩碼判定）",
+                "更新時間": new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(config, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'storage_location_config.json';
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            alert('✅ 設定檔已下載！');
+        }
+
+        // 頁面載入時從 localStorage 讀取設定
+        (function loadSavedConfig() {
+            try {
+                const saved = localStorage.getItem('locationConfig');
+                if (saved) {
+                    const savedConfig = JSON.parse(saved);
+                    locationConfig['專用台'] = savedConfig['專用台'] || locationConfig['專用台'];
+                    locationConfig['一般台'] = savedConfig['一般台'] || locationConfig['一般台'];
+                    console.log('✓ 已載入儲存的儲位設定');
+                }
+                
+                // 載入藥師年資資料
+                const savedSeniority = localStorage.getItem('seniorityData');
+                if (savedSeniority) {
+                    seniorityData = JSON.parse(savedSeniority);
+                    console.log('✓ 已載入儲存的年資資料');
+                }
+            } catch (e) {
+                console.warn('無法載入儲存的設定:', e);
+            }
+        })();
+
+        // 藥師年資管理頁面
+        function showSeniorityConfigPage() {
+            const container = document.querySelector('.container');
+            
+            // 取得基準日期（從 localStorage 或使用當前日期）
+            let baseDate = localStorage.getItem('seniorityBaseDate');
+            if (!baseDate) {
+                const today = new Date();
+                baseDate = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+                localStorage.setItem('seniorityBaseDate', baseDate);
+            }
+            
+            // 計算年資（到基準日期）
+            function calculateSeniority(hireDate, baseYearMonth) {
+                if (!hireDate) return '-';
+                const hire = new Date(hireDate);
+                const [year, month] = baseYearMonth.split('-');
+                const base = new Date(parseInt(year), parseInt(month) - 1, 1);
+                
+                const years = (base - hire) / (365.25 * 24 * 60 * 60 * 1000);
+                return years.toFixed(1) + ' 年';
+            }
+            
+            const sortedPharmacists = Object.entries(seniorityData)
+                .sort((a, b) => new Date(a[1]) - new Date(b[1]));
+            
+            container.innerHTML = `
+                <h1>📅 藥師年資管理</h1>
+                <p class="subtitle">只需設定一次，系統會自動儲存。有新進或離職藥師時再更新即可。</p>
+                
+                <!-- 基準日期設定 -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 10px; margin-top: 30px; color: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3 style="margin: 0 0 10px 0; font-size: 16px;">📆 年資計算基準日期</h3>
+                            <p style="margin: 0; font-size: 13px; opacity: 0.9;">所有年資將計算至此日期（可隨時調整）</p>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <input type="month" id="baseDateInput" value="${baseDate}" 
+                                   style="padding: 10px 15px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; color: #1e3a5f;">
+                            <button onclick="updateBaseDate()" class="btn" 
+                                    style="background: white; color: #667eea; padding: 10px 20px; font-weight: bold;">
+                                ✓ 更新
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: white; padding: 30px; border-radius: 10px; margin-top: 30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="color: #1e3a5f; margin: 0;">
+                            藥師年資清單 
+                            <span style="font-size: 14px; color: #999; font-weight: normal;">
+                                （計算至：${baseDate.split('-')[0]}年${parseInt(baseDate.split('-')[1])}月）
+                            </span>
+                        </h3>
+                        <div>
+                            <button onclick="addPharmacist()" class="btn" style="padding: 8px 16px; font-size: 14px; margin-right: 10px;">
+                                ➕ 新增藥師
+                            </button>
+                            <button onclick="uploadSeniorityFile()" class="btn" style="padding: 8px 16px; font-size: 14px; background: #10b981;">
+                                📤 上傳/更新 Excel
+                            </button>
+                        </div>
+                    </div>
+                    
+                    ${sortedPharmacists.length > 0 ? `
+                        <div style="background: #e8f5e9; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #10b981;">
+                            <strong style="color: #2e7d32;">✓ 已儲存 ${sortedPharmacists.length} 位藥師資料</strong>
+                            <div style="font-size: 13px; color: #666; margin-top: 5px;">
+                                資料已永久儲存在瀏覽器中，除非有新進/離職藥師才需要更新
+                            </div>
+                        </div>
+                    ` : `
+                        <div style="background: #fff3cd; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+                            <strong style="color: #856404;">⚠️ 尚未上傳藥師年資資料</strong>
+                            <div style="font-size: 13px; color: #666; margin-top: 5px;">
+                                請點擊「📤 上傳/更新 Excel」或「➕ 新增藥師」開始建立資料
+                            </div>
+                        </div>
+                    `}
+                    
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #4a90e2; color: white;">
+                                <th style="padding: 12px; text-align: left;">藥師姓名</th>
+                                <th style="padding: 12px; text-align: left;">到職日期</th>
+                                <th style="padding: 12px; text-align: left;">年資（至 ${baseDate.split('-')[0]}/${baseDate.split('-')[1]}）</th>
+                                <th style="padding: 12px; text-align: center;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="seniorityTableBody">
+                            ${sortedPharmacists.length > 0 ? sortedPharmacists.map(([name, date], i) => `
+                                <tr style="${i % 2 === 0 ? 'background: #f8f9fa;' : ''}">
+                                    <td style="padding: 12px;"><strong>${name}</strong></td>
+                                    <td style="padding: 12px;">${date}</td>
+                                    <td style="padding: 12px;"><strong style="color: #4a90e2;">${calculateSeniority(date, baseDate)}</strong></td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <button onclick="editPharmacist('${name}')" style="background: #4a90e2; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-right: 5px;">
+                                            ✏️ 編輯
+                                        </button>
+                                        <button onclick="deletePharmacist('${name}')" style="background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">
+                                            🗑️ 刪除
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('') : '<tr><td colspan="4" style="padding: 40px; text-align: center; color: #999;">尚未新增藥師資料</td></tr>'}
+                        </tbody>
+                    </table>
+                    
+                    <div style="margin-top: 20px;">
+                        <button onclick="saveSeniorityData()" class="btn" style="margin-right: 10px;">
+                            💾 儲存設定
+                        </button>
+                        <button onclick="downloadSeniorityTemplate()" class="btn btn-secondary" style="background: #6c757d; color: white;">
+                            📥 下載範本 Excel
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="background: #f0f7ff; padding: 20px; border-radius: 10px; margin-top: 20px; border-left: 4px solid #4a90e2;">
+                    <h4 style="color: #1e3a5f; margin-bottom: 10px;">📖 使用說明</h4>
+                    <ul style="margin-left: 20px; color: #666; line-height: 2;">
+                        <li><strong>🔐 永久儲存：</strong>資料會自動儲存在瀏覽器中，<span style="color: #d97706; font-weight: 600;">下次開啟不用重新上傳</span></li>
+                        <li><strong>📅 首次設定：</strong>上傳 Excel 或手動新增所有藥師的到職日期</li>
+                        <li><strong>🔄 何時更新：</strong>只有在<span style="color: #059669; font-weight: 600;">新進藥師</span>或<span style="color: #dc2626; font-weight: 600;">藥師離職</span>時才需要更新</li>
+                        <li><strong>📆 調整基準日：</strong>每月可調整「基準日期」重新計算年資（例如：從 2026/03 改為 2026/04）</li>
+                        <li><strong>📤 Excel 格式：</strong>需包含「姓名」和「到職日」兩欄（或「藥師姓名」、「到職日期」）</li>
+                        <li><strong>📝 日期格式：</strong>YYYY.MM.DD 或 YYYY-MM-DD 或 YYYY/MM/DD 皆可</li>
+                    </ul>
+                </div>
+                
+                <div style="background: #fef3c7; padding: 20px; border-radius: 10px; margin-top: 20px; border-left: 4px solid #f59e0b;">
+                    <h4 style="color: #92400e; margin-bottom: 10px;">💡 小提醒</h4>
+                    <div style="color: #78350f; line-height: 1.8;">
+                        <strong>資料已儲存在您的瀏覽器中</strong>，即使關閉網頁或電腦重開，資料也不會遺失。<br>
+                        <strong>不需要每次都上傳</strong>，只有人員異動時才需要更新！
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateBaseDate() {
+            const newBaseDate = document.getElementById('baseDateInput').value;
+            if (!newBaseDate) {
+                alert('⚠️ 請選擇基準日期');
+                return;
+            }
+            
+            localStorage.setItem('seniorityBaseDate', newBaseDate);
+            showSeniorityConfigPage();
+            alert('✅ 基準日期已更新為：' + newBaseDate.split('-')[0] + '年' + parseInt(newBaseDate.split('-')[1]) + '月\n\n年資已重新計算！');
+        }
+
+        function addPharmacist() {
+            const name = prompt('請輸入藥師姓名：');
+            if (!name || !name.trim()) return;
+            
+            const date = prompt('請輸入到職日期（格式：YYYY-MM-DD，例如：2020-01-15）：');
+            if (!date) return;
+            
+            // 驗證日期格式
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                alert('⚠️ 日期格式錯誤！請使用 YYYY-MM-DD 格式（例如：2020-01-15）');
+                return;
+            }
+            
+            seniorityData[name.trim()] = date;
+            showSeniorityConfigPage();
+            alert('✅ 已新增藥師「' + name + '」\n\n請記得點擊「💾 儲存設定」！');
+        }
+
+        function editPharmacist(name) {
+            const newDate = prompt('請輸入新的到職日期（格式：YYYY-MM-DD）：', seniorityData[name]);
+            if (!newDate) return;
+            
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+                alert('⚠️ 日期格式錯誤！');
+                return;
+            }
+            
+            seniorityData[name] = newDate;
+            showSeniorityConfigPage();
+            alert('✅ 已更新藥師「' + name + '」的到職日期\n\n請記得點擊「💾 儲存設定」！');
+        }
+
+        function deletePharmacist(name) {
+            if (!confirm('確定要刪除藥師「' + name + '」的年資資料嗎？')) return;
+            
+            delete seniorityData[name];
+            showSeniorityConfigPage();
+            alert('✅ 已刪除藥師「' + name + '」\n\n請記得點擊「💾 儲存設定」！');
+        }
+
+        function saveSeniorityData() {
+            try {
+                localStorage.setItem('seniorityData', JSON.stringify(seniorityData));
+                alert('✅ 年資資料已儲存！\n\n共 ' + Object.keys(seniorityData).length + ' 位藥師');
+            } catch (e) {
+                alert('❌ 儲存失敗：' + e.message);
+            }
+        }
+
+        function uploadSeniorityFile() {
+            // 建立臨時的 file input
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx,.xls';
+            input.style.display = 'none';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    try {
+                        const data = new Uint8Array(evt.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(sheet);
+                        
+                        let count = 0;
+                        jsonData.forEach(row => {
+                            // 支援多種欄位名稱
+                            const name = row['藥師姓名'] || row['姓名'] || row['name'] || row['員工姓名'];
+                            const date = row['到職日期'] || row['到職日'] || row['日期'] || row['date'];
+                            
+                            if (name && date) {
+                                // 轉換日期格式
+                                let dateStr = String(date);
+                                
+                                // 處理 YYYY.MM.DD 格式
+                                if (dateStr.includes('.')) {
+                                    dateStr = dateStr.replace(/\./g, '-');
+                                }
+                                // 處理 YYYY/MM/DD 格式
+                                else if (dateStr.includes('/')) {
+                                    dateStr = dateStr.replace(/\//g, '-');
+                                }
+                                // 處理 Excel 日期序號
+                                else if (!isNaN(date) && typeof date === 'number') {
+                                    const excelDate = new Date((date - 25569) * 86400 * 1000);
+                                    dateStr = excelDate.toISOString().split('T')[0];
+                                }
+                                
+                                seniorityData[String(name).trim()] = dateStr;
+                                count++;
+                            }
+                        });
+                        
+                        showSeniorityConfigPage();
+                        alert('✅ 成功匯入 ' + count + ' 筆藥師資料\n\n請記得點擊「💾 儲存設定」！');
+                    } catch (error) {
+                        alert('❌ 檔案解析失敗：' + error.message);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            };
+            
+            // 觸發點擊
+            document.body.appendChild(input);
+            input.click();
+            document.body.removeChild(input);
+        }
+
+        function downloadSeniorityTemplate() {
+            const template = [
+                { '姓名': '廖宜敬', '到職日': '2011.08.16' },
+                { '姓名': '張靜怡', '到職日': '2006.08.01' },
+                { '姓名': '朱奕絪', '到職日': '2020.02.03' },
+                { '姓名': '陳建全', '到職日': '2006.12.18' },
+                { '姓名': '朱伯羲', '到職日': '2018.11.19' }
+            ];
+            
+            const ws = XLSX.utils.json_to_sheet(template);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '藥師年資');
+            XLSX.writeFile(wb, '藥師年資範本.xlsx');
+            
+            alert('✅ 範本已下載！\n\n📋 支援的欄位名稱：\n- 姓名 / 藥師姓名 / name\n- 到職日 / 到職日期 / date\n\n📅 支援的日期格式：\n- YYYY.MM.DD (例：2011.08.16)\n- YYYY-MM-DD (例：2011-08-16)\n- YYYY/MM/DD (例：2011/08/16)\n- Excel 日期格式\n\n請填寫完成後，點擊「📤 上傳 Excel」匯入資料');
+        }
+        
+        // 初始化：如果 localStorage 沒有年資資料，就儲存預設資料
+        if (!localStorage.getItem('seniorityData')) {
+            localStorage.setItem('seniorityData', JSON.stringify(seniorityData));
+            console.log('✅ 已載入預設年資資料（72 位藥師）');
+        } else {
+            // 如果有舊資料，就載入
+            try {
+                const savedData = JSON.parse(localStorage.getItem('seniorityData'));
+                seniorityData = savedData;
+                console.log(`✅ 已載入儲存的年資資料（${Object.keys(seniorityData).length} 位藥師）`);
+            } catch (e) {
+                console.error('年資資料載入失敗，使用預設資料');
+            }
+        }
+    </script>
+</body>
+</html>
