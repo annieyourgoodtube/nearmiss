@@ -255,6 +255,10 @@
                 <span class="nav-icon">👥</span>
                 <span>藥師分析</span>
             </div>
+            <div class="nav-item" onclick="showPage('builder')">
+                <span class="nav-icon">🧱</span>
+                <span>建構者分析</span>
+            </div>
             <div class="nav-item" onclick="showPage('seniority-analysis')">
                 <span class="nav-icon">📊</span>
                 <span>年資分布分析</span>
@@ -815,6 +819,9 @@
                 case 'pharmacist':
                     showPharmacistPage();
                     break;
+                case 'builder':
+                    showBuilderPage();
+                    break;
                 case 'seniority-analysis':
                     showSeniorityAnalysisPage();
                     break;
@@ -886,10 +893,11 @@
                 <h3 style="color: #1e3a5f; margin: 30px 0 15px 0;">各藥局詳細分析</h3>
             `;
             
+            html += `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: start; margin-top: 5px;">`;
             sortedPharmacies.forEach(([name, data]) => {
                 const topTypes = Object.entries(data.types).sort((a, b) => b[1] - a[1]).slice(0, 5);
                 html += `
-                    <div style="background: white; padding: 25px; margin-bottom: 20px; border-radius: 10px; border-left: 4px solid #4a90e2;">
+                    <div style="background: white; padding: 20px; border-radius: 10px; border-left: 4px solid #4a90e2;">
                         <h4 style="color: #1e3a5f; margin-bottom: 15px;">${name} (${data.total} 筆)</h4>
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
@@ -914,7 +922,42 @@
                     </div>
                 `;
             });
+            html += `</div>`;
             
+            container.innerHTML = html;
+        }
+
+        function showBuilderPage() {
+            if (!analysisData) return;
+            const container = document.querySelector('.container');
+
+            // 統計各建構者筆數
+            const builderStats = {};
+            analysisData.forEach(row => {
+                const builder = row['建構者'] ? String(row['建構者']).trim() : '';
+                if (builder) builderStats[builder] = (builderStats[builder] || 0) + 1;
+            });
+
+            const sorted = Object.entries(builderStats).sort((a, b) => b[1] - a[1]);
+            const grandTotal = sorted.reduce((s, [, c]) => s + c, 0);
+
+            let html = `
+                <h1>建構者分析</h1>
+                <p class="subtitle">各建構者疏失筆數統計</p>
+
+                <h3 style="color: #1e3a5f; margin: 25px 0 12px 0;">共 ${sorted.length} 位建構者（合計 ${grandTotal} 筆）</h3>
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 15px;">
+                    ${sorted.map(([name, count], i) => `
+                        <div class="stat-card" style="text-align: center;">
+                            <div style="font-size: 12px; color: #999; margin-bottom: 4px;">#${i + 1}</div>
+                            <div style="font-size: 16px; font-weight: 600; color: #1e3a5f; margin-bottom: 6px;">${name}</div>
+                            <div class="stat-value" style="font-size: 28px;">${count}</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 4px;">${grandTotal ? ((count / grandTotal) * 100).toFixed(1) : '0.0'}%</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
             container.innerHTML = html;
         }
 
