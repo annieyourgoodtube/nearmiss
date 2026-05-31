@@ -270,14 +270,6 @@
         </div>
 
         <div class="nav-section">
-            <div class="nav-section-title">視覺化分析</div>
-            <div class="nav-item" onclick="showPage('sankey')">
-                <span class="nav-icon">📊</span>
-                <span>桑基圖分析</span>
-            </div>
-        </div>
-
-        <div class="nav-section">
             <div class="nav-section-title">系統管理</div>
             <div class="nav-item" onclick="showPage('location-config')">
                 <span class="nav-icon">🔧</span>
@@ -314,7 +306,7 @@
         <div id="results">
             <h2 style="color: #1e3a5f; margin: 30px 0 20px 0;">📊 分析結果</h2>
             
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px;">
                 <div class="stat-card">
                     <div class="stat-label">總疏失數</div>
                     <div class="stat-value" id="totalCount">0</div>
@@ -330,6 +322,18 @@
                 <div class="stat-card">
                     <div class="stat-label">審核藥師發現</div>
                     <div class="stat-value" id="reviewerCount">0</div>
+                </div>
+                <div class="stat-card" style="border-left-color: #0ea5e9;">
+                    <div class="stat-label">第一院區</div>
+                    <div class="stat-value" id="firstCampusCount">0</div>
+                </div>
+                <div class="stat-card" style="border-left-color: #8b5cf6;">
+                    <div class="stat-label">第二院區（中藥局）</div>
+                    <div class="stat-value" id="secondCampusCount">0</div>
+                </div>
+                <div class="stat-card" style="border-left-color: #ef4444;">
+                    <div class="stat-label">急診（急診藥局）</div>
+                    <div class="stat-value" id="emergencyCount">0</div>
                 </div>
             </div>
 
@@ -462,17 +466,8 @@
 
                         analyzeAndDisplay(jsonData);
                         
-                        // 儲存過濾後的資料（排除測試用藥師）
-                        analysisData = jsonData.filter(row => {
-                            const oral = row['口調藥師'] ? String(row['口調藥師']) : '';
-                            const water = row['水雜藥師'] ? String(row['水雜藥師']) : '';
-                            const reviewer = row['審核藥師'] ? String(row['審核藥師']) : '';
-                            const dispenser = row['發藥藥師'] ? String(row['發藥藥師']) : '';
-                            return !oral.includes('測試') && 
-                                   !water.includes('測試') && 
-                                   !reviewer.includes('測試') && 
-                                   !dispenser.includes('測試');
-                        });
+                        // 儲存過濾後的資料（整列任一欄含「測試」或 test 即排除）
+                        analysisData = jsonData.filter(row => !isTestRow(row));
 
                         document.getElementById('loading').style.display = 'none';
                         document.getElementById('results').style.display = 'block';
@@ -485,26 +480,28 @@
             reader.readAsArrayBuffer(file);
         };
 
-        function analyzeAndDisplay(data) {
-            // 過濾掉測試資料
-            const filteredData = data.filter(row => {
-                const oral = row['口調藥師'] ? String(row['口調藥師']) : '';
-                const water = row['水雜藥師'] ? String(row['水雜藥師']) : '';
-                const reviewer = row['審核藥師'] ? String(row['審核藥師']) : '';
-                const dispenser = row['發藥藥師'] ? String(row['發藥藥師']) : '';
-                
-                // 如果任何一個藥師欄位包含「測試」，就過濾掉
-                return !oral.includes('測試') && 
-                       !water.includes('測試') && 
-                       !reviewer.includes('測試') && 
-                       !dispenser.includes('測試');
+        // 判斷整列是否為測試資料：整列任何一格含「測試」或英文 test（不分大小寫）就排除整列
+        function isTestRow(row) {
+            if (!row) return false;
+            return Object.values(row).some(v => {
+                if (v === null || v === undefined) return false;
+                const s = String(v).toLowerCase();
+                return s.includes('測試') || s.includes('test');
             });
+        }
+
+        function analyzeAndDisplay(data) {
+            // 過濾掉測試資料（整列任一欄含「測試」或 test 即排除）
+            const filteredData = data.filter(row => !isTestRow(row));
             
             let stats = {
                 total: filteredData.length,
                 special: 0,
                 general: 0,
                 reviewer: 0,
+                secondCampus: 0,
+                emergency: 0,
+                firstCampus: 0,
                 errorPharmacists: {},
                 errorTypes: {},
                 discoveryTypes: { '審核藥師發現': 0, '發藥藥師發現': 0 },
@@ -519,6 +516,17 @@
                     const loc = String(row['儲位']).substring(0, 2).toUpperCase();
                     if (locationConfig['專用台'].includes(loc)) stats.special++;
                     else if (locationConfig['一般台'].includes(loc)) stats.general++;
+                }
+
+                // 院區歸類（互斥）：含「中藥局」→第二院區；含「急診藥局」→急診；其餘→第一院區
+                // 先去除所有空白（含全形空格），避免「中 藥局」這類隱藏空白造成比對失敗
+                const pharmacyName = row['調劑藥局'] ? String(row['調劑藥局']).replace(/\s/g, '') : '';
+                if (pharmacyName.includes('中藥局')) {
+                    stats.secondCampus++;
+                } else if (pharmacyName.includes('急診藥局')) {
+                    stats.emergency++;
+                } else {
+                    stats.firstCampus++;
                 }
 
                 // 發現類型判定
@@ -709,6 +717,9 @@
             document.getElementById('specialCount').textContent = stats.special;
             document.getElementById('generalCount').textContent = stats.general;
             document.getElementById('reviewerCount').textContent = stats.reviewer;
+            document.getElementById('secondCampusCount').textContent = stats.secondCampus;
+            document.getElementById('emergencyCount').textContent = stats.emergency;
+            document.getElementById('firstCampusCount').textContent = stats.firstCampus;
 
             // 發現類型統計
             document.getElementById('reviewDiscoveryCount').textContent = stats.discoveryTypes['審核藥師發現'];
@@ -813,9 +824,6 @@
                 case 'error':
                     showErrorPage();
                     break;
-                case 'sankey':
-                    showSankeyPage();
-                    break;
                 case 'location-config':
                     showLocationConfigPage();
                     break;
@@ -848,22 +856,32 @@
             });
             
             const sortedPharmacies = Object.entries(pharmacyStats).sort((a, b) => b[1].total - a[1].total);
+            const pharmacyGrandTotal = sortedPharmacies.reduce((sum, [, d]) => sum + d.total, 0);
+            const pharmacyCount = sortedPharmacies.length;
             
             let html = `
                 <h1>調劑藥局分析</h1>
                 <p class="subtitle">各藥局疏失統計與類型分析</p>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 30px 0;">
-                    ${sortedPharmacies.slice(0, 4).map(([name, data]) => `
-                        <div class="stat-card">
-                            <div class="stat-label">${name}</div>
-                            <div class="stat-value">${data.total}</div>
-                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                                ${((data.total / analysisData.length) * 100).toFixed(1)}%
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
+                <h3 style="color: #1e3a5f; margin: 25px 0 12px 0;">所有調劑藥局（共 ${pharmacyGrandTotal} 筆）</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+                    <thead>
+                        <tr style="background: #4a90e2; color: white;">
+                            <th style="padding: 12px; text-align: left;">調劑藥局</th>
+                            <th style="padding: 12px; text-align: right;">筆數</th>
+                            <th style="padding: 12px; text-align: right;">佔比</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sortedPharmacies.map(([name, data], i) => `
+                            <tr style="${i % 2 === 0 ? 'background: #f8f9fa;' : ''}">
+                                <td style="padding: 12px;">${name}</td>
+                                <td style="padding: 12px; text-align: right;"><strong>${data.total}</strong></td>
+                                <td style="padding: 12px; text-align: right;">${pharmacyGrandTotal ? ((data.total / pharmacyGrandTotal) * 100).toFixed(1) : '0.0'}%</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
                 
                 <h3 style="color: #1e3a5f; margin: 30px 0 15px 0;">各藥局詳細分析</h3>
             `;
@@ -909,25 +927,31 @@
             const sourceStats = {};
             
             analysisData.forEach(row => {
-                const source = row['處方來源'];
+                // 正規化處方來源：去除前後空白並轉大寫，避免 'o'、' O' 被當成不同來源而拆散
+                let source = row['處方來源'];
+                source = (source !== null && source !== undefined) ? String(source).trim().toUpperCase() : '';
+                // 空白或非 O/I/E 的一律歸到「未知」並顯示出來，不再靜默丟掉（確保每一筆都被抓到）
+                if (!source) source = '未知';
                 const errorType = row['調劑疏失類型'];
                 const pharmacy = getPharmacyName(row);
                 
-                if (source) {
-                    if (!sourceStats[source]) {
-                        sourceStats[source] = { total: 0, types: {}, pharmacies: {} };
-                    }
-                    sourceStats[source].total++;
-                    if (errorType) {
-                        sourceStats[source].types[errorType] = 
-                            (sourceStats[source].types[errorType] || 0) + 1;
-                    }
-                    if (pharmacy) {
-                        sourceStats[source].pharmacies[pharmacy] = 
-                            (sourceStats[source].pharmacies[pharmacy] || 0) + 1;
-                    }
+                if (!sourceStats[source]) {
+                    sourceStats[source] = { total: 0, types: {}, pharmacies: {} };
+                }
+                sourceStats[source].total++;
+                if (errorType) {
+                    sourceStats[source].types[errorType] = 
+                        (sourceStats[source].types[errorType] || 0) + 1;
+                }
+                if (pharmacy) {
+                    sourceStats[source].pharmacies[pharmacy] = 
+                        (sourceStats[source].pharmacies[pharmacy] || 0) + 1;
                 }
             });
+            
+            // 計算 O/I/E 三類合計，方便核對是否與總疏失數一致
+            const oieTotal = ['O', 'I', 'E'].reduce((s, k) => s + (sourceStats[k] ? sourceStats[k].total : 0), 0);
+            const unknownTotal = sourceStats['未知'] ? sourceStats['未知'].total : 0;
             
             const sortedSources = Object.entries(sourceStats).sort((a, b) => b[1].total - a[1].total);
             
@@ -935,7 +959,13 @@
                 <h1>處方來源分析</h1>
                 <p class="subtitle">門診、住院、急診處方疏失統計</p>
                 
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 30px 0;">
+                <div style="background: ${unknownTotal > 0 ? '#fef3c7' : '#ecfdf5'}; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${unknownTotal > 0 ? '#f59e0b' : '#10b981'};">
+                    <p style="margin: 0; font-size: 14px; color: ${unknownTotal > 0 ? '#92400e' : '#065f46'};">
+                        <strong>核對：</strong>總疏失 ${analysisData.length} 筆，其中 O/I/E 三類共 ${oieTotal} 筆${unknownTotal > 0 ? `，另有 <strong>${unknownTotal} 筆「未知」</strong>（處方來源為空白或非 O/I/E）—— 這些已單獨列出，未被丟棄。` : '，全部都已正確歸入 O/I/E 三類，無遺漏。'}
+                    </p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 30px 0;">
                     ${sortedSources.map(([code, data]) => `
                         <div class="stat-card">
                             <div class="stat-label">${sourceNames[code] || code}</div>
@@ -1723,89 +1753,6 @@
             `;
             
             container.innerHTML = html;
-        }
-
-        function showSankeyPage() {
-            if (!analysisData) return;
-            
-            const container = document.querySelector('.container');
-            
-            // 計算流程：處方來源 → 調劑藥局 → 發現類型 → 疏失類型
-            const flows = {};
-            const sourceNames = { 'O': '門診', 'I': '住院', 'E': '急診' };
-            
-            analysisData.forEach(row => {
-                const source = sourceNames[row['處方來源']] || row['處方來源'] || '未知';
-                const pharmacy = getPharmacyName(row).substring(0, 10); // 縮短名稱
-                const builder = row['建構者'];
-                const reviewer = row['審核藥師'];
-                const dispenser = row['發藥藥師'];
-                const dispensingType = row['調劑種類'];
-                const errorType = row['調劑疏失類型'] || '未知';
-                
-                // 判定發現類型（修正邏輯）
-                let discoveryType = '審核藥師';
-                if (dispensingType && ['首日量', 'UD過檔', 'PRN確認'].includes(String(dispensingType).trim())) {
-                    discoveryType = '審核藥師';
-                } else if (builder && dispenser && String(builder).trim() === String(dispenser).trim()) {
-                    discoveryType = '發藥藥師';
-                } else {
-                    discoveryType = '審核藥師';
-                }
-                
-                // 流程: 處方來源 → 發現類型 → 疏失類型
-                const flow1 = `${source}→${discoveryType}`;
-                flows[flow1] = (flows[flow1] || 0) + 1;
-                
-                const flow2 = `${discoveryType}→${errorType}`;
-                flows[flow2] = (flows[flow2] || 0) + 1;
-            });
-            
-            const sortedFlows = Object.entries(flows).sort((a, b) => b[1] - a[1]);
-            
-            container.innerHTML = `
-                <h1>📊 桑基圖分析</h1>
-                <p class="subtitle">疏失流程視覺化分析</p>
-                
-                <div style="background: white; padding: 30px; border-radius: 10px; margin-top: 30px;">
-                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; text-align: center;">
-                        <div style="display: inline-flex; align-items: center; gap: 20px;">
-                            <div><strong>📋 處方來源</strong></div>
-                            <div style="font-size: 24px; color: #4a90e2;">→</div>
-                            <div><strong>🔍 發現類型</strong></div>
-                            <div style="font-size: 24px; color: #4a90e2;">→</div>
-                            <div><strong>⚠️ 疏失類型</strong></div>
-                        </div>
-                    </div>
-                    
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="background: #4a90e2; color: white;">
-                                <th style="padding: 12px; text-align: left;">流程路徑</th>
-                                <th style="padding: 12px; text-align: right;">數量</th>
-                                <th style="padding: 12px; text-align: right;">佔比</th>
-                                <th style="padding: 12px;">視覺化</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${sortedFlows.map(([flow, count], i) => {
-                                const percent = ((count / analysisData.length) * 100).toFixed(1);
-                                const barWidth = Math.min(100, Math.max(5, percent * 5));
-                                return `
-                                    <tr style="${i % 2 === 0 ? 'background: #f8f9fa;' : ''}">
-                                        <td style="padding: 12px;">${flow}</td>
-                                        <td style="padding: 12px; text-align: right;"><strong>${count}</strong></td>
-                                        <td style="padding: 12px; text-align: right;">${percent}%</td>
-                                        <td style="padding: 12px;">
-                                            <div style="background: linear-gradient(90deg, #4a90e2, #357abd); height: 10px; width: ${barWidth}%; border-radius: 4px;"></div>
-                                        </td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
         }
 
         function showLocationConfigPage() {
