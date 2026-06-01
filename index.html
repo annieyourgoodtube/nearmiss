@@ -308,6 +308,7 @@
         </div>
 
         <div id="results">
+            <button onclick="downloadCurrentExport('分析結果')" title="將本頁資料匯出成 Excel" style="background:#1d7a46;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:14px;cursor:pointer;float:right;margin-top:30px;">📥 匯出 Excel</button>
             <h2 style="color: #1e3a5f; margin: 30px 0 20px 0;">📊 分析結果</h2>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px;">
@@ -492,6 +493,59 @@
                 const s = String(v).toLowerCase();
                 return s.includes('測試') || s.includes('test');
             });
+        }
+
+        // ===== Excel 匯出功能 =====
+        let currentExport = null; // { label, sheets: [{name, aoa}] }
+
+        function setExport(label, sheets) {
+            currentExport = { label: label, sheets: (sheets || []).filter(s => s && s.aoa && s.aoa.length) };
+        }
+
+        function exportButtonHtml(label) {
+            const arg = label ? `'${String(label).replace(/'/g, '')}'` : '';
+            return `<button onclick="downloadCurrentExport(${arg})" title="將本頁資料匯出成 Excel" style="background:#1d7a46;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:14px;cursor:pointer;float:right;">📥 匯出 Excel</button>`;
+        }
+
+        function downloadCurrentExport(label) {
+            if (typeof XLSX === 'undefined') { alert('Excel 函式庫尚未載入，請稍後再試。'); return; }
+            const wb = XLSX.utils.book_new();
+            const used = {};
+            function safeName(n, idx) {
+                n = String(n || ('工作表' + (idx + 1))).replace(/[\\\/\?\*\[\]:]/g, ' ').trim().substring(0, 28) || ('工作表' + (idx + 1));
+                let base = n, k = 1;
+                while (used[n]) { n = base.substring(0, 24) + '_' + (++k); }
+                used[n] = true; return n;
+            }
+            let outLabel = label;
+            if (currentExport && currentExport.sheets.length) {
+                outLabel = outLabel || currentExport.label;
+                currentExport.sheets.forEach((sh, i) => {
+                    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sh.aoa), safeName(sh.name, i));
+                });
+            } else {
+                // 後備：抓取目前頁面所有表格，各成一個工作表
+                const container = document.querySelector('.container');
+                const tables = container ? container.querySelectorAll('table') : [];
+                tables.forEach((tbl, i) => {
+                    let name = '';
+                    let cur = tbl;
+                    while (cur && cur !== container && !name) {
+                        let p = cur.previousElementSibling;
+                        while (p) { if (/^H[1-6]$/.test(p.tagName)) { name = p.textContent.trim(); break; } p = p.previousElementSibling; }
+                        cur = cur.parentElement;
+                    }
+                    XLSX.utils.book_append_sheet(wb, XLSX.utils.table_to_sheet(tbl, { raw: true }), safeName(name || ('表格' + (i + 1)), i));
+                });
+                if (!outLabel) {
+                    const h1 = container ? container.querySelector('h1') : null;
+                    outLabel = h1 ? h1.textContent.trim() : '匯出';
+                }
+            }
+            if (!wb.SheetNames.length) { alert('這個頁面目前沒有可匯出的資料，請先上傳資料。'); return; }
+            const d = new Date();
+            const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+            XLSX.writeFile(wb, `${String(outLabel || '匯出').replace(/[\\\/:*?"<>|]/g, '')}_${stamp}.xlsx`);
         }
 
         function analyzeAndDisplay(data) {
@@ -788,6 +842,27 @@
                 errorTypeHTML += `<tr><td>${type}</td><td><strong>${count}</strong></td><td>${percent}%</td></tr>`;
             });
             document.getElementById('errorTypeBody').innerHTML = errorTypeHTML;
+
+            // 設定本頁匯出資料
+            const pct = n => stats.total ? ((n / stats.total) * 100).toFixed(1) + '%' : '0.0%';
+            setExport('分析結果', [
+                { name: '總覽', aoa: [
+                    ['項目', '數值', '佔比'],
+                    ['總疏失數', stats.total, '100%'],
+                    ['第一院區', stats.firstCampus, pct(stats.firstCampus)],
+                    ['第二院區(中藥局)', stats.secondCampus, pct(stats.secondCampus)],
+                    ['急診(急診藥局)', stats.emergency, pct(stats.emergency)],
+                    ['專用台疏失', stats.special, pct(stats.special)],
+                    ['一般台疏失', stats.general, pct(stats.general)],
+                    ['審核藥師發現', stats.discoveryTypes['審核藥師發現'], pct(stats.discoveryTypes['審核藥師發現'])],
+                    ['發藥藥師發現', stats.discoveryTypes['發藥藥師發現'], pct(stats.discoveryTypes['發藥藥師發現'])]
+                ]},
+                { name: '疏失類型', aoa: [['疏失類型', '次數', '佔比'], ...errorTypeList.map(([t, c]) => [t, c, pct(c)])] },
+                { name: '疏失藥師排行', aoa: [['排名', '藥師', '疏失次數'], ...Object.entries(stats.errorPharmacists).sort((a, b) => b[1] - a[1]).map(([n, c], i) => [i + 1, n, c])] },
+                { name: '發現藥師排行', aoa: [['排名', '建構者', '發現次數'], ...Object.entries(stats.discoverers).sort((a, b) => b[1] - a[1]).map(([n, c], i) => [i + 1, n, c])] },
+                { name: '審核藥師發現明細', aoa: [['排名', '建構者', '次數'], ...Object.entries(stats.reviewDiscoverers).sort((a, b) => b[1] - a[1]).map(([n, c], i) => [i + 1, n, c])] },
+                { name: '發藥藥師發現明細', aoa: [['排名', '建構者', '次數'], ...Object.entries(stats.dispenserDiscoverers).sort((a, b) => b[1] - a[1]).map(([n, c], i) => [i + 1, n, c])] }
+            ]);
         }
 
         // 頁面切換功能
@@ -799,6 +874,7 @@
             event.target.closest('.nav-item').classList.add('active');
 
             const container = document.querySelector('.container');
+            currentExport = null; // 每次切換頁面先清空，由各頁自行設定或由後備表格抓取
 
             if (!analysisData && page !== 'upload' && page !== 'location-config' && page !== 'seniority-config') {
                 alert('請先上傳資料！');
@@ -867,6 +943,7 @@
             const pharmacyCount = sortedPharmacies.length;
             
             let html = `
+                ${exportButtonHtml('調劑藥局')}
                 <h1>調劑藥局分析</h1>
                 <p class="subtitle">各藥局疏失統計與類型分析</p>
                 
@@ -923,7 +1000,19 @@
                 `;
             });
             html += `</div>`;
-            
+
+            // 設定本頁匯出資料
+            const pharmacyDetailAoa = [['調劑藥局', '疏失類型', '次數', '佔該局比例']];
+            sortedPharmacies.forEach(([name, data]) => {
+                Object.entries(data.types).sort((a, b) => b[1] - a[1]).forEach(([type, count]) => {
+                    pharmacyDetailAoa.push([name, type, count, data.total ? ((count / data.total) * 100).toFixed(1) + '%' : '0%']);
+                });
+            });
+            setExport('調劑藥局', [
+                { name: '藥局總覽', aoa: [['調劑藥局', '筆數', '佔比'], ...sortedPharmacies.map(([name, data]) => [name, data.total, pharmacyGrandTotal ? ((data.total / pharmacyGrandTotal) * 100).toFixed(1) + '%' : '0%'])] },
+                { name: '藥局疏失明細', aoa: pharmacyDetailAoa }
+            ]);
+
             container.innerHTML = html;
         }
 
@@ -942,6 +1031,7 @@
             const grandTotal = sorted.reduce((s, [, c]) => s + c, 0);
 
             let html = `
+                ${exportButtonHtml('建構者分析')}
                 <h1>建構者分析</h1>
                 <p class="subtitle">各建構者疏失筆數統計</p>
 
@@ -957,6 +1047,10 @@
                     `).join('')}
                 </div>
             `;
+
+            setExport('建構者分析', [
+                { name: '建構者筆數', aoa: [['排名', '建構者', '筆數', '佔比'], ...sorted.map(([name, count], i) => [i + 1, name, count, grandTotal ? ((count / grandTotal) * 100).toFixed(1) + '%' : '0%'])] }
+            ]);
 
             container.innerHTML = html;
         }
@@ -999,6 +1093,7 @@
             const sortedSources = Object.entries(sourceStats).sort((a, b) => b[1].total - a[1].total);
             
             let html = `
+                ${exportButtonHtml('處方來源')}
                 <h1>處方來源分析</h1>
                 <p class="subtitle">門診、住院、急診處方疏失統計</p>
                 
@@ -1280,6 +1375,7 @@
             const sortedDiscoverers = Object.entries(discovererStats).sort((a, b) => b[1] - a[1]);
             
             let html = `
+                ${exportButtonHtml('藥師分析')}
                 <h1>藥師分析</h1>
                 <p class="subtitle">完整的藥師疏失與發現統計分析</p>
                 
@@ -1407,6 +1503,7 @@
             });
             
             let html = `
+                ${exportButtonHtml('儲位分析')}
                 <h1>儲位分析</h1>
                 <p class="subtitle">各儲位區域疏失統計與台別分析</p>
                 
@@ -1636,6 +1733,7 @@
             };
             
             let html = `
+                ${exportButtonHtml('年資分布分析')}
                 <h1>📊 疏失藥師年資分布分析</h1>
                 <p class="subtitle">分析不同年資藥師的疏失分布情況（計算至：${baseDate.split('-')[0]}年${parseInt(baseDate.split('-')[1])}月）</p>
                 
@@ -1756,6 +1854,7 @@
             const sortedErrors = Object.entries(errorTypeStats).sort((a, b) => b[1] - a[1]);
             
             let html = `
+                ${exportButtonHtml('疏失原因')}
                 <h1>疏失原因分析</h1>
                 <p class="subtitle">各類型疏失統計與發現類型分析</p>
                 
