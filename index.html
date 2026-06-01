@@ -333,8 +333,12 @@
                     <div class="stat-value" id="firstCampusCount">0</div>
                 </div>
                 <div class="stat-card" style="border-left-color: #8b5cf6;">
-                    <div class="stat-label">第二院區（中藥局）</div>
-                    <div class="stat-value" id="secondCampusCount">0</div>
+                    <div class="stat-label">第二院區（中藥）</div>
+                    <div class="stat-value" id="secondCampusZhongCount">0</div>
+                </div>
+                <div class="stat-card" style="border-left-color: #14b8a6;">
+                    <div class="stat-label">第二院區（西藥）</div>
+                    <div class="stat-value" id="secondCampusXiCount">0</div>
                 </div>
                 <div class="stat-card" style="border-left-color: #ef4444;">
                     <div class="stat-label">急診（急診藥局）</div>
@@ -557,7 +561,8 @@
                 special: 0,
                 general: 0,
                 reviewer: 0,
-                secondCampus: 0,
+                secondCampusZhong: 0,
+                secondCampusXi: 0,
                 emergency: 0,
                 firstCampus: 0,
                 errorPharmacists: {},
@@ -576,11 +581,16 @@
                     else if (locationConfig['一般台'].includes(loc)) stats.general++;
                 }
 
-                // 院區歸類（互斥）：含「中藥局」→第二院區；含「急診藥局」→急診；其餘→第一院區
-                // 先去除所有空白（含全形空格），避免「中 藥局」這類隱藏空白造成比對失敗
+                // 院區歸類（互斥）：先去除所有空白（含全形空格），避免隱藏空白造成比對失敗
+                // 第二院區(中藥)：中藥局科中 或 飲片中藥局（以含「中藥局」涵蓋）
+                // 第二院區(西藥)：第二院區門診西藥局 或 第二院區住院首日量藥局
+                // 急診：含「急診藥局」；其餘 → 第一院區
                 const pharmacyName = row['調劑藥局'] ? String(row['調劑藥局']).replace(/\s/g, '') : '';
+                const xiyaoNames = ['第二院區門診西藥局', '第二院區住院首日量藥局'];
                 if (pharmacyName.includes('中藥局')) {
-                    stats.secondCampus++;
+                    stats.secondCampusZhong++;
+                } else if (xiyaoNames.includes(pharmacyName)) {
+                    stats.secondCampusXi++;
                 } else if (pharmacyName.includes('急診藥局')) {
                     stats.emergency++;
                 } else {
@@ -775,7 +785,8 @@
             document.getElementById('specialCount').textContent = stats.special;
             document.getElementById('generalCount').textContent = stats.general;
             document.getElementById('reviewerCount').textContent = stats.reviewer;
-            document.getElementById('secondCampusCount').textContent = stats.secondCampus;
+            document.getElementById('secondCampusZhongCount').textContent = stats.secondCampusZhong;
+            document.getElementById('secondCampusXiCount').textContent = stats.secondCampusXi;
             document.getElementById('emergencyCount').textContent = stats.emergency;
             document.getElementById('firstCampusCount').textContent = stats.firstCampus;
 
@@ -850,7 +861,8 @@
                     ['項目', '數值', '佔比'],
                     ['總疏失數', stats.total, '100%'],
                     ['第一院區', stats.firstCampus, pct(stats.firstCampus)],
-                    ['第二院區(中藥局)', stats.secondCampus, pct(stats.secondCampus)],
+                    ['第二院區(中藥)', stats.secondCampusZhong, pct(stats.secondCampusZhong)],
+                    ['第二院區(西藥)', stats.secondCampusXi, pct(stats.secondCampusXi)],
                     ['急診(急診藥局)', stats.emergency, pct(stats.emergency)],
                     ['專用台疏失', stats.special, pct(stats.special)],
                     ['一般台疏失', stats.general, pct(stats.general)],
