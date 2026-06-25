@@ -2191,6 +2191,49 @@
                     </div>`;
             };
 
+            // 發藥疏失：發藥藥師發現（建構者=發藥藥師，且排除首日量/UD過檔/PRN確認，與其他頁一致）
+            // 此區塊含所有疏失類型（不排除數量錯誤），列出每一筆明細
+            const dispenserFound = analysisData.filter(row => {
+                const dt = row['調劑種類'] ? String(row['調劑種類']).trim() : '';
+                if (['首日量', 'UD過檔', 'PRN確認'].includes(dt)) return false;
+                const b = row['建構者'] ? String(row['建構者']).trim() : '';
+                const d = row['發藥藥師'] ? String(row['發藥藥師']).trim() : '';
+                return b !== '' && d !== '' && b === d;
+            }).sort((a, b) => String(a['調劑疏失類型'] || '').localeCompare(String(b['調劑疏失類型'] || ''), 'zh-Hant'));
+
+            // 調劑藥師 = 口調藥師 + 水雜藥師（去重後合併）
+            const dispPharmacist = row => {
+                const vals = [row['口調藥師'], row['水雜藥師']].map(v => v ? String(v).trim() : '').filter(Boolean);
+                return [...new Set(vals)].join('、');
+            };
+            const dispRows = dispenserFound.length ? dispenserFound.map((row, i) => `
+                <tr style="${i % 2 === 0 ? 'background:#f8f9fa;' : ''}">
+                    <td style="padding:10px;border-bottom:1px solid #eee;text-align:center;color:#999;">${i + 1}</td>
+                    <td style="padding:10px;border-bottom:1px solid #eee;">${row['調劑疏失類型'] || '—'}</td>
+                    <td style="padding:10px;border-bottom:1px solid #eee;color:#b91c1c;">${row['錯誤藥品名稱'] || '—'}</td>
+                    <td style="padding:10px;border-bottom:1px solid #eee;color:#0369a1;">${row['正確藥品名稱'] || '—'}</td>
+                    <td style="padding:10px;border-bottom:1px solid #eee;">${dispPharmacist(row) || '—'}</td>
+                    <td style="padding:10px;border-bottom:1px solid #eee;">${row['審核藥師'] ? String(row['審核藥師']).trim() : '—'}</td>
+                </tr>`).join('') : `<tr><td colspan="6" style="padding:14px;text-align:center;color:#999;">無發藥藥師發現的資料</td></tr>`;
+
+            const dispSectionHtml = `
+                <h3 style="color:#7c3aed;margin:34px 0 6px 0;">發藥疏失（發藥藥師發現，建構者＝發藥藥師）　<span style="font-size:14px;color:#666;font-weight:normal;">共 ${dispenserFound.length} 筆</span></h3>
+                <p style="font-size:13px;color:#666;margin:0 0 10px 0;">此區塊含所有疏失類型（不排除數量錯誤）。疏失者：調劑藥師（口調＋水雜）、審核藥師。</p>
+                <table style="width:100%;border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:#7c3aed;color:white;">
+                            <th style="padding:10px;width:56px;">序號</th>
+                            <th style="padding:10px;text-align:left;">疏失類型</th>
+                            <th style="padding:10px;text-align:left;">錯誤藥品名稱</th>
+                            <th style="padding:10px;text-align:left;">正確藥品名稱</th>
+                            <th style="padding:10px;text-align:left;">調劑藥師</th>
+                            <th style="padding:10px;text-align:left;">審核藥師</th>
+                        </tr>
+                    </thead>
+                    <tbody>${dispRows}</tbody>
+                </table>
+            `;
+
             let html = `
                 ${exportButtonHtml('疏失品項')}
                 <h1>疏失品項分析</h1>
@@ -2204,11 +2247,14 @@
                     ${buildTable('錯誤藥品名稱', '#ef4444', wrongSorted, wrongLoc)}
                     ${buildTable('正確藥品名稱', '#0ea5e9', correctSorted, correctLoc)}
                 </div>
+
+                ${dispSectionHtml}
             `;
 
             setExport('疏失品項', [
                 { name: '錯誤藥品名稱', aoa: [['排名', '儲位', '錯誤藥品名稱', '次數', '佔比'], ...wrongSorted.map(([n, c], i) => [i + 1, locOf(wrongLoc, n), n, c, pf(c)])] },
-                { name: '正確藥品名稱', aoa: [['排名', '儲位', '正確藥品名稱', '次數', '佔比'], ...correctSorted.map(([n, c], i) => [i + 1, locOf(correctLoc, n), n, c, pf(c)])] }
+                { name: '正確藥品名稱', aoa: [['排名', '儲位', '正確藥品名稱', '次數', '佔比'], ...correctSorted.map(([n, c], i) => [i + 1, locOf(correctLoc, n), n, c, pf(c)])] },
+                { name: '發藥疏失', aoa: [['序號', '疏失類型', '錯誤藥品名稱', '正確藥品名稱', '調劑藥師', '審核藥師'], ...dispenserFound.map((row, i) => [i + 1, row['調劑疏失類型'] || '', row['錯誤藥品名稱'] || '', row['正確藥品名稱'] || '', dispPharmacist(row), row['審核藥師'] ? String(row['審核藥師']).trim() : ''])] }
             ]);
 
             container.innerHTML = html;
