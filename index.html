@@ -355,7 +355,7 @@
                 </div>
             </div>
 
-            <h3 style="color: #1e3a5f; margin: 20px 0 10px 0;">👥 疏失藥師排行 TOP 10</h3>
+            <h3 style="color: #1e3a5f; margin: 20px 0 10px 0;">👥 疏失藥師排行（全部）</h3>
             <table id="pharmacistTable">
                 <thead>
                     <tr><th>排名</th><th>藥師</th><th>疏失次數</th></tr>
@@ -941,10 +941,9 @@
             document.getElementById('dispenserDiscoveryPercent').textContent = 
                 ((stats.discoveryTypes['發藥藥師發現'] / stats.total) * 100).toFixed(1) + '%';
 
-            // 疏失藥師排行
+            // 疏失藥師排行（全部列出）
             const pharmacistList = Object.entries(stats.errorPharmacists)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 10);
+                .sort((a, b) => b[1] - a[1]);
             
             let pharmacistHTML = '';
             pharmacistList.forEach(([name, count], i) => {
